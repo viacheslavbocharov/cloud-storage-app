@@ -1,7 +1,6 @@
 import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
-
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
@@ -22,8 +21,8 @@ export class AuthController {
     return this.authService.login(email, password);
   }
 
-  @Get('protected')
   @UseGuards(AuthGuard('jwt'))
+  @Get('protected')
   getProtected(@Request() req) {
     return { message: 'You have access!', user: req.user };
   }
