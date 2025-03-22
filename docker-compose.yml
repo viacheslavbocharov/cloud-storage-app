@@ -11,7 +11,9 @@ services:
       - mongo_data:/data/db
 
   auth-service:
-    build: ./backend/auth-service
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile.dev
     container_name: auth-service
     depends_on:
       - mongo
