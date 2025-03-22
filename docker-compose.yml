@@ -20,6 +20,9 @@ services:
     ports:
       - "3001:3001"
     restart: always
+    volumes:
+      - ./backend/auth-service:/app
+      - /app/node_modules
 
 volumes:
   mongo_data:
