@@ -20,7 +20,12 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   // Проверяем переменные окружения
-  const requiredEnvVars = ['PORT', 'MONGO_URI', 'JWT_SECRET', 'JWT_EXPIRATION'];
+  const requiredEnvVars = [
+    'PORT',
+    'MONGO_URI',
+    'JWT_SECRET',
+    'JWT_EXPIRATION',
+  ];
   requiredEnvVars.forEach((envVar) => {
     if (!configService.get(envVar)) {
       logger.error(`❌ Missing environment variable: ${envVar}`);

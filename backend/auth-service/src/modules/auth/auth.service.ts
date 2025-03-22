@@ -8,14 +8,17 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) 
+    @InjectModel(User.name)
     private userModel: Model<UserDocument>,
     private jwtService: JwtService,
   ) {}
 
   async register(email: string, password: string) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new this.userModel({ email, password: hashedPassword });
+    const user = new this.userModel({
+      email,
+      password: hashedPassword,
+    });
     await user.save();
     return { message: 'User registered successfully' };
   }

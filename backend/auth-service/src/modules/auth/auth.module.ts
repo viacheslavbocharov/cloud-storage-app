@@ -24,11 +24,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRATION') },
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION'),
+        },
       }),
     }),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}
