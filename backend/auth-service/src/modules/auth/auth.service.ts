@@ -13,6 +13,7 @@ import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -139,5 +141,40 @@ export class AuthService {
   
     return { message: 'Password changed successfully' };
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.userModel.findOne({ email });
+    if (!user) throw new BadRequestException('User not found');
+  
+    const payload = { sub: user._id };
+    const token = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: this.configService.get<string>('RESET_TOKEN_EXPIRATION') || '15m',
+    });
+  
+    await this.mailService.sendResetPasswordEmail(email, token);
+  
+    return { message: 'Reset link has been sent to your email' };
+  }
+  
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+  
+      const user = await this.userModel.findById(payload.sub);
+      if (!user) throw new UnauthorizedException('Invalid token');
+  
+      user.password = await bcrypt.hash(newPassword, 10);
+      user.refreshToken = null;
+      await user.save();
+  
+      return { message: 'Password has been reset successfully' };
+    } catch {
+      throw new UnauthorizedException('Token expired or invalid');
+    }
+  }
+  
   
 }

@@ -17,6 +17,10 @@ async function bootstrap() {
     'JWT_SECRET',
     'JWT_EXPIRATION',
     'JWT_REFRESH_EXPIRATION',
+    'SMTP_USER',
+    'SMTP_PASS',
+    'RESET_TOKEN_EXPIRATION',
+    'FRONTEND_URL',
   ];
   requiredEnvVars.forEach((envVar) => {
     if (!configService.get(envVar)) {
