@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
@@ -18,48 +22,29 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  // async register(email: string, password: string) {
-  //   const hashedPassword = await bcrypt.hash(password, 10);
-  //   const user = new this.userModel({
-  //     email,
-  //     password: hashedPassword,
-  //   });
-  //   await user.save();
-  //   return { message: 'User registered successfully' };
-  // }
-
-  // async login(email: string, password: string) {
-  //   const user = await this.userModel.findOne({ email });
-  //   if (!user || !(await bcrypt.compare(password, user.password))) {
-  //     throw new UnauthorizedException('Invalid credentials');
-  //   }
-  //   const payload = { email: user.email, sub: user._id };
-  //   return { accessToken: this.jwtService.sign(payload) };
-  // }
-
   async register(createUserDto: CreateUserDto) {
-    const { email, password } = createUserDto;
+    const { email, password, firstName, lastName } = createUserDto;
+
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = new this.userModel({
       email,
       password: hashedPassword,
+      firstName,
+      lastName,
+      role: 'user',
+      refreshToken: null,
     });
 
     await user.save();
+
     return { message: 'User registered successfully' };
   }
-
-  // async login(loginDto: LoginDto) {
-  //   const { email, password } = loginDto;
-
-  //   const user = await this.userModel.findOne({ email });
-  //   if (!user || !(await bcrypt.compare(password, user.password))) {
-  //     throw new UnauthorizedException('Invalid credentials');
-  //   }
-  //   const payload = { email: user.email, sub: user._id };
-  //   return { accessToken: this.jwtService.sign(payload) };
-  // }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;

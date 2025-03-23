@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  UseGuards,
-  Request,
-  Req,
-} from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,22 +7,6 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  // @Post('register')
-  // async register(
-  //   @Body('email') email: string,
-  //   @Body('password') password: string,
-  // ) {
-  //   return this.authService.register(email, password);
-  // }
-
-  // @Post('login')
-  // async login(
-  //   @Body('email') email: string,
-  //   @Body('password') password: string,
-  // ) {
-  //   return this.authService.login(email, password);
-  // }
 
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
@@ -44,7 +20,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('protected')
-  getProtected(@Request() req: any) {
+  getProtected(@Req() req) {
     return { message: 'You have access!', user: req.user };
   }
 

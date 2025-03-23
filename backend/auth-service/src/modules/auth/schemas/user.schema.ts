@@ -12,7 +12,16 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop()
+  @Prop({ required: true })
+  firstName: string;
+
+  @Prop({ required: true })
+  lastName: string;
+
+  @Prop({ default: 'user' })
+  role: string;
+
+  @Prop({ required: false, default: null })
   refreshToken?: string;
 }
 
