@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from './dto/create-user.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,17 +15,41 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string) {
+  // async register(email: string, password: string) {
+  //   const hashedPassword = await bcrypt.hash(password, 10);
+  //   const user = new this.userModel({
+  //     email,
+  //     password: hashedPassword,
+  //   });
+  //   await user.save();
+  //   return { message: 'User registered successfully' };
+  // }
+
+  // async login(email: string, password: string) {
+  //   const user = await this.userModel.findOne({ email });
+  //   if (!user || !(await bcrypt.compare(password, user.password))) {
+  //     throw new UnauthorizedException('Invalid credentials');
+  //   }
+  //   const payload = { email: user.email, sub: user._id };
+  //   return { accessToken: this.jwtService.sign(payload) };
+  // }
+
+  async register(createUserDto: CreateUserDto) {
+    const { email, password } = createUserDto;
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new this.userModel({
       email,
       password: hashedPassword,
     });
+
     await user.save();
     return { message: 'User registered successfully' };
   }
 
-  async login(email: string, password: string) {
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
     const user = await this.userModel.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
