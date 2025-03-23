@@ -6,7 +6,7 @@ services:
     container_name: mongo
     restart: always
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongo_data:/data/db
 
@@ -14,16 +14,34 @@ services:
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile.dev
+    image: cloud-storage-app-auth-service:v1.0.0
     container_name: auth-service
     depends_on:
       - mongo
     env_file:
       - ./backend/auth-service/.env
     ports:
-      - "3001:3001"
+      - '3001:3001'
     restart: always
     volumes:
       - ./backend/auth-service:/app
+      - /app/node_modules
+    
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile.dev
+    image: cloud-storage-app-user-service:v1.0.0
+    container_name: user-service
+    depends_on:
+      - mongo
+    env_file:
+      - ./backend/user-service/.env
+    ports:
+      - '3002:3002'
+    restart: always
+    volumes:
+      - ./backend/user-service:/app
       - /app/node_modules
 
 volumes:

@@ -1,0 +1,22 @@
+# Базовый образ
+FROM node:18-alpine
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем package.json и устанавливаем зависимости
+COPY package*.json ./
+RUN npm install
+
+# Устанавливаем глобально ts-node и nodemon
+RUN npm install -g ts-node tsconfig-paths nodemon
+
+# Копируем остальной код
+COPY . .
+
+# Указываем порт и окружение
+ENV PORT=3002
+ENV NODE_ENV=development
+
+# Запускаем приложение через nodemon
+CMD ["npm", "run", "start:dev"]
