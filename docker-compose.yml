@@ -42,5 +42,28 @@ services:
       - ./backend/user-service:/app
       - /app/node_modules
 
+    file-service:
+      build:
+        context: ./backend/file-service
+        dockerfile: Dockerfile.dev
+      image: cloud-storage-app-file-service:v1.1.0
+      container_name: file-service
+      depends_on:
+        - mongo
+      env_file:
+        - ./backend/file-service/.env
+      ports:
+        - '3003:3003'
+      restart: always
+      volumes:
+        - ./backend/file-service:/app
+        - /app/node_modules
+        - ./backend/file-service/uploads:/app/uploads
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3003/files/health"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+
 volumes:
   mongo_data:

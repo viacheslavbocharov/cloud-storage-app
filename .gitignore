@@ -38,3 +38,6 @@ coverage/
 *.swp
 .DS_Store
 Thumbs.db
+
+# File-service
+uploads/
