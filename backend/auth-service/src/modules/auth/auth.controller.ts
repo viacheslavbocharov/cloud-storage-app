@@ -21,11 +21,6 @@ import { PreRegisterDto } from './dto/pre-register.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // @Post('register')
-  // async register(@Body() createUserDto: CreateUserDto) {
-  //   return this.authService.register(createUserDto);
-  // }
-
   @Post('pre-register')
   async preRegister(@Body() dto: PreRegisterDto) {
     return this.authService.preRegister(dto);

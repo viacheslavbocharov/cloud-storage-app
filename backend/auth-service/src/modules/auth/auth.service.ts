@@ -26,29 +26,6 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  // async register(createUserDto: CreateUserDto) {
-  //   const { email, password, firstName, lastName } = createUserDto;
-
-  //   const existingUser = await this.userModel.findOne({ email });
-  //   if (existingUser) {
-  //     throw new BadRequestException('User with this email already exists');
-  //   }
-
-  //   const hashedPassword = await bcrypt.hash(password, 10);
-
-  //   const user = new this.userModel({
-  //     email,
-  //     password: hashedPassword,
-  //     firstName,
-  //     lastName,
-  //     role: 'user',
-  //     refreshToken: null,
-  //   });
-
-  //   await user.save();
-
-  //   return { message: 'User registered successfully' };
-  // }
 
   async preRegister(dto: PreRegisterDto) {
     const existing = await this.userModel.findOne({ email: dto.email });
