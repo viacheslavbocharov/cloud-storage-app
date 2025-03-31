@@ -16,6 +16,23 @@ export class MailService {
     });
   }
 
+  async sendVerificationLink(to: string, token: string) {
+    const link = `${this.configService.get('FRONTEND_URL')}/auth/verify-registration?token=${token}`;
+
+    const mailOptions = {
+      from: `"Cloud Storage App"`,
+      to,
+      subject: 'Confirm your registration',
+      html: `
+        <p>Click the link below to complete your registration:</p>
+        <a href="${link}">${link}</a>
+        <p>This link will expire in 15 minutes.</p>
+      `,
+    };
+
+    await this.transporter.sendMail(mailOptions);
+  }
+
   async sendResetPasswordEmail(to: string, token: string) {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
@@ -34,4 +51,3 @@ export class MailService {
     await this.transporter.sendMail(mailOptions);
   }
 }
-

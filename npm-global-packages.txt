@@ -1,0 +1,8 @@
+C:\Users\viach\AppData\Roaming\npm
+├── @angular/cli@16.2.10
+├── @nestjs/cli@10.4.5
+├── @vue/cli@5.0.8
+├── npm@10.2.4
+├── ts-node@10.9.2
+└── typescript@5.5.2
+

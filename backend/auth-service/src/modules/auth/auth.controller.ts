@@ -6,6 +6,7 @@ import {
   UseGuards,
   Req,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,13 +16,24 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { PreRegisterDto } from './dto/pre-register.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  // @Post('register')
+  // async register(@Body() createUserDto: CreateUserDto) {
+  //   return this.authService.register(createUserDto);
+  // }
+
+  @Post('pre-register')
+  async preRegister(@Body() dto: PreRegisterDto) {
+    return this.authService.preRegister(dto);
+  }
+
+  @Get('verify-registration')
+  async verifyRegistration(@Query('token') token: string) {
+    return this.authService.verifyRegistration(token);
   }
 
   @Post('login')
