@@ -24,6 +24,7 @@ export class FileController {
   @Post('upload')
   @UseInterceptors(FileUploadInterceptor)
   async uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req) {
-    return this.fileService.saveFileMetadata(file, req.user.userId);
+    const userId = req.user?.sub;
+    return this.fileService.saveFileMetadata(file, userId);
   }
 }
