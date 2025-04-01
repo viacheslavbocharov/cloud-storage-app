@@ -6,12 +6,12 @@ import {
   UseInterceptors,
   UseGuards,
   Req,
+  Body,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { FileUploadInterceptor } from './interceptors/file-upload.interceptor';
 
-@UseGuards(AuthGuard)
 @Controller('files')
 export class FileController {
   constructor(private readonly fileService: FileService) {}
@@ -21,10 +21,15 @@ export class FileController {
     return { status: 'ok', service: 'file-service' };
   }
 
+  @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileUploadInterceptor)
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req) {
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req,
+    @Body('folderId') folderId: string,
+  ) {
     const userId = req.user?.sub;
-    return this.fileService.saveFileMetadata(file, userId);
+    return this.fileService.saveFileMetadata(file, userId, folderId);
   }
 }

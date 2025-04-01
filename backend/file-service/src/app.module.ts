@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FileModule } from './modules/file/file.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FolderModule } from './modules/folder/folder.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
     FileModule,
+    FolderModule
   ],
   controllers: [AppController],
   providers: [AppService],

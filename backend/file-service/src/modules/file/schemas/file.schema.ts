@@ -5,6 +5,12 @@ export type FileDocument = HydratedDocument<File>;
 
 @Schema()
 export class File {
+  @Prop({ default: null })
+  folderId: string | null;
+
+  @Prop({ required: true })
+  key: string; // path: userId/folder1/folder2/filename.jpg
+
   @Prop({ required: true })
   filename: string;
 
