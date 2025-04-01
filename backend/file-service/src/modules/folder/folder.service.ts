@@ -10,9 +10,9 @@ export class FolderService {
     @InjectModel(Folder.name) private folderModel: Model<FolderDocument>,
   ) {}
 
-  async create(createFolderDto: CreateFolderDto, ownerId: string) {
+  async create(dto: CreateFolderDto, ownerId: string) {
     const folder = new this.folderModel({
-      ...createFolderDto,
+      ...dto,
       ownerId,
     });
     return folder.save();

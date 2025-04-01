@@ -18,11 +18,12 @@ export class FolderController {
 
   @Post()
   async create(@Body() dto: CreateFolderDto, @Req() req) {
-    return this.folderService.create(dto, req.user.userId);
+    const userId = req.user?.sub;
+    return this.folderService.create(dto, userId);
   }
 
   @Get('contents')
   async getContents(@Req() req, @Query('folderId') folderId: string) {
-    return this.folderService.findContents(req.user.userId, folderId ?? null);
+    return this.folderService.findContents(req.user?.sub, folderId ?? null);
   }
 }
