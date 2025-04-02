@@ -4,7 +4,7 @@ import { FileController } from './file.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { File, FileSchema } from './schemas/file.schema';
 import { Folder, FolderSchema } from '../folder/schemas/folder.schema';
-import { FileUploadInterceptor } from './interceptors/file-upload.interceptor';
+import { FileUploadManyInterceptor } from './interceptors/file-upload-many.interceptor';
 
 @Module({
   imports: [
@@ -14,6 +14,6 @@ import { FileUploadInterceptor } from './interceptors/file-upload.interceptor';
     ]),
   ],
   controllers: [FileController],
-  providers: [FileService, FileUploadInterceptor],
+  providers: [FileService, FileUploadManyInterceptor],
 })
 export class FileModule {}
