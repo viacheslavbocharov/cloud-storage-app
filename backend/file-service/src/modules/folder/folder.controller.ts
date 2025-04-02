@@ -12,7 +12,7 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 import { AuthGuard } from '../../guards/auth.guard';
 
 @UseGuards(AuthGuard)
-@Controller('folders')
+@Controller('folder')
 export class FolderController {
   constructor(private readonly folderService: FolderService) {}
 

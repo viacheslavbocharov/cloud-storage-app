@@ -3,14 +3,16 @@ import {
   Get,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
   UseGuards,
   Req,
   Body,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { AuthGuard } from '../../guards/auth.guard';
-import { FileUploadInterceptor } from './interceptors/file-upload.interceptor';
+import { FileUploadManyInterceptor } from './interceptors/file-upload-many.interceptor';
 
 @Controller('files')
 export class FileController {
@@ -23,13 +25,23 @@ export class FileController {
 
   @UseGuards(AuthGuard)
   @Post('upload')
-  @UseInterceptors(FileUploadInterceptor)
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req,
+  @UseInterceptors(FileUploadManyInterceptor)
+  async uploadMany(
+    @UploadedFiles() files: Express.Multer.File[],
     @Body('folderId') folderId: string,
+    @Req() req,
   ) {
     const userId = req.user?.sub;
-    return this.fileService.saveFileMetadata(file, userId, folderId);
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    const results = await Promise.all(
+      files.map((file) =>
+        this.fileService.saveFileMetadata(file, userId, folderId),
+      ),
+    );
+
+    return results;
   }
 }
