@@ -15,20 +15,54 @@ export class FileService {
     private configService: ConfigService,
   ) {}
 
-  async buildFolderPath(folderId: string | null): Promise<string> {
-    if (!folderId) return '';
+  // async buildFolderPath(folderId: string | null): Promise<string> {
+  //   if (!folderId) return '';
 
-    const folderPathSegments: string[] = [];
-    let currentFolder = await this.folderModel.findById(folderId);
+  //   const folderPathSegments: string[] = [];
+  //   let currentFolder = await this.folderModel.findById(folderId);
 
-    while (currentFolder) {
-      folderPathSegments.unshift(currentFolder.name);
-      currentFolder = currentFolder.parentFolderId
-        ? await this.folderModel.findById(currentFolder.parentFolderId)
-        : null;
+  //   while (currentFolder) {
+  //     folderPathSegments.unshift(currentFolder.name);
+  //     currentFolder = currentFolder.parentFolderId
+  //       ? await this.folderModel.findById(currentFolder.parentFolderId)
+  //       : null;
+  //   }
+
+  //   return folderPathSegments.join('/');
+  // }
+
+  async buildFolderPath(folderId: string | null): Promise<string | null> {
+    if (!folderId) return null;
+
+    const pathParts: string[] = [];
+    let currentId: string | null = folderId;
+
+    while (currentId) {
+      const folder = await this.folderModel.findById(currentId).lean();
+      if (!folder) break;
+
+      pathParts.unshift(folder.name);
+      currentId = folder.parentFolderId ?? null;
     }
 
-    return folderPathSegments.join('/');
+    console.log('[📁 BUILD PATH]', { folderId, pathParts });
+
+    return pathParts.join('/');
+  }
+
+  async buildFolderPathParts(folderId: string): Promise<string[]> {
+    const parts: string[] = [];
+    let currentId: string | null = folderId;
+
+    while (currentId) {
+      const folder = await this.folderModel.findById(currentId).lean();
+      if (!folder) break;
+
+      parts.unshift(folder.name);
+      currentId = folder.parentFolderId ?? null;
+    }
+
+    return parts;
   }
 
   async saveFileMetadata(
@@ -46,6 +80,13 @@ export class FileService {
       : `${ownerId}/${filename}`;
 
     const fullPath = path.join(uploadRoot, key);
+
+    console.log('[📂 FILE DEBUG]', {
+      folderPath,
+      key,
+      fullPath,
+    });
+
     const sourcePath = file.path; // ← фактический путь к файлу в temp
 
     // Создаём папки
@@ -75,5 +116,82 @@ export class FileService {
     });
 
     return newFile.save();
+  }
+
+  async handleFolderUpload(
+    files: Express.Multer.File[],
+    ownerId: string,
+    folderId: string | null = null,
+  ) {
+    const results = [];
+
+    interface FileWithRelativePath extends Express.Multer.File {
+      relativePath?: string;
+    }
+
+    for (const file of files as FileWithRelativePath[]) {
+
+      const relativePath = file.relativePath || file.originalname;
+      const pathParts = relativePath.split('/');
+      console.log('[🧠 RELATIVE PATH]', relativePath);
+
+      const fileName = pathParts.pop(); // имя файла
+      const folderParts = pathParts;
+
+      const basePath = folderId
+        ? await this.buildFolderPathParts(folderId)
+        : [];
+
+      const fullFolderPath = [...basePath, ...folderParts];
+
+      const targetFolderId = await this.findOrCreateFolderPath(
+        fullFolderPath,
+        ownerId,
+        null,
+      );
+
+      file.originalname = fileName;
+
+      console.log('[➡️ TO SAVE]', {
+        fileName,
+        relativePath,
+        fullFolderPath,
+        targetFolderId,
+      });
+
+      const saved = await this.saveFileMetadata(file, ownerId, targetFolderId);
+      results.push(saved);
+    }
+
+    return results;
+  }
+
+  async findOrCreateFolderPath(
+    pathParts: string[],
+    ownerId: string,
+    folderId: string | null = null,
+  ): Promise<string | null> {
+    let currentParentId = folderId;
+
+    for (const name of pathParts) {
+      let folder = await this.folderModel.findOne({
+        name,
+        ownerId,
+        parentFolderId: currentParentId,
+      });
+
+      if (!folder) {
+        folder = new this.folderModel({
+          name,
+          ownerId,
+          parentFolderId: currentParentId,
+        });
+        await folder.save();
+      }
+
+      currentParentId = folder._id.toString();
+    }
+
+    return currentParentId;
   }
 }

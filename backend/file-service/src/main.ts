@@ -11,12 +11,7 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   // Проверяем переменные окружения
-  const requiredEnvVars = [
-    'PORT',
-    'MONGO_URI',
-    'UPLOAD_FOLDER',
-    'JWT_SECRET',
-  ];
+  const requiredEnvVars = ['PORT', 'MONGO_URI', 'UPLOAD_FOLDER', 'JWT_SECRET'];
   requiredEnvVars.forEach((envVar) => {
     if (!configService.get(envVar)) {
       logger.error(`❌ Missing environment variable: ${envVar}`);
@@ -36,6 +31,13 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const port = configService.get<number>('PORT') || 3003;
+
+  app.enableCors({
+    origin: '*', // или укажи конкретно: ['https://example.com']
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   await app.listen(port);
   logger.log(`🚀 Server is running on port ${port}`);
 }

@@ -5,17 +5,14 @@ export type FileDocument = HydratedDocument<File>;
 
 @Schema()
 export class File {
-  @Prop({ default: null })
-  folderId: string | null;
-
-  @Prop({ required: true })
-  key: string; // path: userId/folder1/folder2/filename.jpg
-
-  @Prop({ required: true })
+  @Prop({ required: true }) // имя файла на диске (uuid + ext)
   filename: string;
 
-  @Prop()
+  @Prop({ required: true }) // оригинальное имя от пользователя
   originalName: string;
+
+  @Prop() // опциональное имя, заданное вручную (например, переименование)
+  customName?: string;
 
   @Prop()
   mimeType: string;
@@ -29,11 +26,23 @@ export class File {
   @Prop({ required: true })
   ownerId: string;
 
-  @Prop({ default: 'private', enum: ['private', 'public', 'link'] })
+  @Prop({ default: 'private' })
   access: 'private' | 'public' | 'link';
 
   @Prop()
   sharedToken?: string;
+
+  @Prop({ default: null })
+  folderId: string | null;
+
+  @Prop({ required: true }) // путь для S3 или файловой системы
+  key: string;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
+
+  @Prop()
+  deletedAt?: Date;
 }
 
 export const FileSchema = SchemaFactory.createForClass(File);
