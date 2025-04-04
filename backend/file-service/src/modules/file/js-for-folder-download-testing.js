@@ -15,17 +15,17 @@ document.getElementById('folderInput').addEventListener('change', async (e) => {
   }
 
   // ❗ folderId можно указать, если надо вложить в конкретную папку
-  const targetFolderId = '67efb7e5ca221cd5151ff618'; // или: '67ebe1845b1c86ef0ad1294d'
+  const targetFolderId = '67effc83ef73bfc5ff63744e'; // или: '67ebe1845b1c86ef0ad1294d'
 
   if (targetFolderId) {
     formData.append('folderId', targetFolderId);
   }
 
-  const res = await fetch('http://localhost:3003/files/upload-folder', {
+  const res = await fetch('http://localhost:3003/folders/upload-folder', {
     method: 'POST',
     headers: {
       Authorization:
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZpYWNoZXNsYXZib2NoYXJvdkBnbWFpbC5jb20iLCJzdWIiOiI2N2VmYjRkZjlhMWI1NjZiNjg5YmMzMTUiLCJpYXQiOjE3NDM3NjM4NTgsImV4cCI6MTc0Mzc2NDc1OH0.oIPseKQPBuIYpT-efHDPvS6NYEvZ4yWXgRVSfYNaGP8',
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZpYWNoZXNsYXZib2NoYXJvdkBnbWFpbC5jb20iLCJzdWIiOiI2N2VmZjEyM2M4M2QxOGJhOGUyYThjYTAiLCJpYXQiOjE3NDM3ODExODksImV4cCI6MTc0Mzc4MjA4OX0.PGw-JW7vfVT4tUAbiJTGhZapl4tMS9h1omgzmNjnTi0',
     },
     body: formData,
   });
