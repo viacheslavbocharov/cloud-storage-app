@@ -11,7 +11,6 @@ import { Folder, FolderDocument } from '../folder/schemas/folder.schema';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as archiver from 'archiver';
 import { nanoid } from 'nanoid';
 
 @Injectable()
@@ -40,21 +39,6 @@ export class FileService {
 
     return pathParts.join('/');
   }
-
-  // async buildFolderPathParts(folderId: string): Promise<string[]> {
-  //   const parts: string[] = [];
-  //   let currentId: string | null = folderId;
-
-  //   while (currentId) {
-  //     const folder = await this.folderModel.findById(currentId).lean();
-  //     if (!folder) break;
-
-  //     parts.unshift(folder.name);
-  //     currentId = folder.parentFolderId ?? null;
-  //   }
-
-  //   return parts;
-  // }
 
   async saveFileMetadata(
     file: Express.Multer.File,
@@ -109,82 +93,6 @@ export class FileService {
     return newFile.save();
   }
 
-  // async handleFolderUpload(
-  //   files: Express.Multer.File[],
-  //   ownerId: string,
-  //   folderId: string | null = null,
-  // ) {
-  //   const results = [];
-
-  //   interface FileWithRelativePath extends Express.Multer.File {
-  //     relativePath?: string;
-  //   }
-
-  //   for (const file of files as FileWithRelativePath[]) {
-  //     const relativePath = file.relativePath || file.originalname;
-  //     const pathParts = relativePath.split('/');
-  //     console.log('[🧠 RELATIVE PATH]', relativePath);
-
-  //     const fileName = pathParts.pop(); // имя файла
-  //     const folderParts = pathParts;
-
-  //     const basePath = folderId
-  //       ? await this.buildFolderPathParts(folderId)
-  //       : [];
-
-  //     const fullFolderPath = [...basePath, ...folderParts];
-
-  //     const targetFolderId = await this.findOrCreateFolderPath(
-  //       fullFolderPath,
-  //       ownerId,
-  //       null,
-  //     );
-
-  //     file.originalname = fileName;
-
-  //     console.log('[➡️ TO SAVE]', {
-  //       fileName,
-  //       relativePath,
-  //       fullFolderPath,
-  //       targetFolderId,
-  //     });
-
-  //     const saved = await this.saveFileMetadata(file, ownerId, targetFolderId);
-  //     results.push(saved);
-  //   }
-
-  //   return results;
-  // }
-
-  // async findOrCreateFolderPath(
-  //   pathParts: string[],
-  //   ownerId: string,
-  //   folderId: string | null = null,
-  // ): Promise<string | null> {
-  //   let currentParentId = folderId;
-
-  //   for (const name of pathParts) {
-  //     let folder = await this.folderModel.findOne({
-  //       name,
-  //       ownerId,
-  //       parentFolderId: currentParentId,
-  //     });
-
-  //     if (!folder) {
-  //       folder = new this.folderModel({
-  //         name,
-  //         ownerId,
-  //         parentFolderId: currentParentId,
-  //       });
-  //       await folder.save();
-  //     }
-
-  //     currentParentId = folder._id.toString();
-  //   }
-
-  //   return currentParentId;
-  // }
-
   async findById(id: string, ownerId: string) {
     const file = await this.fileModel.findOne({ _id: id, ownerId });
 
@@ -197,51 +105,29 @@ export class FileService {
 
   async findBySharedToken(token: string) {
     const file = await this.fileModel.findOne({ sharedToken: token });
-  
+
     if (!file || file.access !== 'link') {
       throw new BadRequestException('Invalid or expired link');
     }
-  
+
     return file;
   }
 
-
   async shareFile(id: string, ownerId: string) {
     const file = await this.fileModel.findOne({ _id: id, ownerId });
-  
+
     if (!file) {
       throw new NotFoundException('File not found');
     }
-  
+
     file.access = 'link';
     file.sharedToken = nanoid(16);
-  
+
     await file.save();
-  
+
     return {
       sharedUrl: `/files/shared/${file.sharedToken}`,
     };
   }
 
-  // async downloadFolderAsZip(folderId: string, ownerId: string, res: any) {
-  //   const folder = await this.folderModel.findOne({ _id: folderId, ownerId });
-  //   if (!folder) throw new NotFoundException('Folder not found');
-  
-  //   const folderPath = await this.buildFolderPath(folderId);
-  //   const uploadRoot = this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
-  //   const baseDir = path.join(uploadRoot, ownerId, folderPath);
-  
-  //   const archive = archiver('zip', { zlib: { level: 9 } });
-  
-  //   archive.on('error', (err) => {
-  //     throw err;
-  //   });
-  
-  //   res.attachment(`${folder.name}.zip`);
-  //   archive.pipe(res);
-  
-  //   archive.directory(baseDir, false); // second param: remove base path in zip
-  //   await archive.finalize();
-  // }
-  
 }

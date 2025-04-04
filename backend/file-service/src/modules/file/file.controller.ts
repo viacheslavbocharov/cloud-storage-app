@@ -16,7 +16,6 @@ import {
 import { FileService } from './file.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { FileUploadManyInterceptor } from './interceptors/file-upload-many.interceptor';
-import { rawUploadMiddleware } from './middleware/raw-upload.middleware';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -54,27 +53,6 @@ export class FileController {
 
     return results;
   }
-
-  // @UseGuards(AuthGuard)
-  // @Post('upload-folder')
-  // async uploadFolder(@Req() req, @Res() res) {
-  //   rawUploadMiddleware(req, res, async () => {
-  //     const userId = req.user?.sub;
-  //     const folderId =
-  //       req.body.folderId && req.body.folderId !== 'null'
-  //         ? req.body.folderId
-  //         : null;
-  //     const files = req.files;
-
-  //     const result = await this.fileService.handleFolderUpload(
-  //       files,
-  //       userId,
-  //       folderId,
-  //     );
-
-  //     res.json(result);
-  //   });
-  // }
 
   @UseGuards(AuthGuard)
   @Get(':id')
@@ -121,25 +99,4 @@ export class FileController {
 
     return res.download(fullPath, file.originalName);
   }
-
-  // @UseGuards(AuthGuard)
-  // @Get('/folders/:id/download')
-  // async downloadFolder(@Param('id') id: string, @Req() req, @Res() res) {
-  //   const ownerId = req.user?.sub;
-  //   return this.fileService.downloadFolderAsZip(id, ownerId, res);
-  // }
-
-  // @Get('/folders/shared/:token')
-  // async downloadSharedFolder(@Param('token') token: string, @Res() res) {
-  //   const folder = await this.folderModel.findOne({ sharedToken: token });
-  //   if (!folder || folder.access !== 'link') {
-  //     throw new BadRequestException('Invalid or expired link');
-  //   }
-
-  //   return this.fileService.downloadFolderAsZip(
-  //     folder._id.toString(),
-  //     folder.ownerId,
-  //     res,
-  //   );
-  // }
 }

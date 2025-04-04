@@ -35,5 +35,3 @@ document.getElementById('folderInput').addEventListener('change', async (e) => {
 });
 //энтер
 //вывбрать папку и отправить
-
-
