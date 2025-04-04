@@ -6,6 +6,7 @@ import {
   Req,
   UseGuards,
   Query,
+  Param,
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
@@ -25,5 +26,11 @@ export class FolderController {
   @Get('contents')
   async getContents(@Req() req, @Query('folderId') folderId: string) {
     return this.folderService.findContents(req.user?.sub, folderId ?? null);
+  }
+
+  @Get(':id')
+  async getById(@Req() req, @Param('id') id: string) {
+    const ownerId = req.user?.sub;
+    return this.folderService.findById(id, ownerId);
   }
 }

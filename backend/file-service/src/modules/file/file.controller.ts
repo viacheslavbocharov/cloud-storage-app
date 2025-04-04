@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  UploadedFile,
   UploadedFiles,
   UseInterceptors,
   UseGuards,
@@ -10,18 +9,12 @@ import {
   Res,
   Body,
   BadRequestException,
+  Param,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { FileUploadManyInterceptor } from './interceptors/file-upload-many.interceptor';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { rawMulter } from './middleware/raw-multer.middleware';
 import { rawUploadMiddleware } from './middleware/raw-upload.middleware';
-import { Request, Response } from 'express';
 
 @Controller('files')
 export class FileController {
@@ -60,9 +53,9 @@ export class FileController {
     rawUploadMiddleware(req, res, async () => {
       const userId = req.user?.sub;
       const folderId =
-      req.body.folderId && req.body.folderId !== 'null'
-        ? req.body.folderId
-        : null;
+        req.body.folderId && req.body.folderId !== 'null'
+          ? req.body.folderId
+          : null;
       const files = req.files;
 
       const result = await this.fileService.handleFolderUpload(
@@ -74,20 +67,11 @@ export class FileController {
       res.json(result);
     });
   }
+
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  async getById(@Req() req, @Param('id') id: string) {
+    const ownerId = req.user?.sub;
+    return this.fileService.findById(id, ownerId);
+  }
 }
-
-
-//   async uploadFolder(
-//     @UploadedFiles() files: Express.Multer.File[],
-//     @Req() req,
-//     @Body('folderId') folderId: string,
-//   ) {
-//     const userId = req.user?.sub;
-
-//     return this.fileService.handleFolderUpload(
-//       files,
-//       userId,
-//       folderId ?? null,
-//     );
-//   }
-// }

@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File, FileDocument } from './schemas/file.schema';
@@ -14,22 +18,6 @@ export class FileService {
     @InjectModel(Folder.name) private folderModel: Model<FolderDocument>,
     private configService: ConfigService,
   ) {}
-
-  // async buildFolderPath(folderId: string | null): Promise<string> {
-  //   if (!folderId) return '';
-
-  //   const folderPathSegments: string[] = [];
-  //   let currentFolder = await this.folderModel.findById(folderId);
-
-  //   while (currentFolder) {
-  //     folderPathSegments.unshift(currentFolder.name);
-  //     currentFolder = currentFolder.parentFolderId
-  //       ? await this.folderModel.findById(currentFolder.parentFolderId)
-  //       : null;
-  //   }
-
-  //   return folderPathSegments.join('/');
-  // }
 
   async buildFolderPath(folderId: string | null): Promise<string | null> {
     if (!folderId) return null;
@@ -130,7 +118,6 @@ export class FileService {
     }
 
     for (const file of files as FileWithRelativePath[]) {
-
       const relativePath = file.relativePath || file.originalname;
       const pathParts = relativePath.split('/');
       console.log('[🧠 RELATIVE PATH]', relativePath);
@@ -193,5 +180,15 @@ export class FileService {
     }
 
     return currentParentId;
+  }
+
+  async findById(id: string, ownerId: string) {
+    const file = await this.fileModel.findOne({ _id: id, ownerId });
+
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
+
+    return file;
   }
 }

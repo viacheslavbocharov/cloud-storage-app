@@ -15,7 +15,7 @@ document.getElementById('folderInput').addEventListener('change', async (e) => {
   }
 
   // ❗ folderId можно указать, если надо вложить в конкретную папку
-  const targetFolderId = null; // или: '67ebe1845b1c86ef0ad1294d'
+  const targetFolderId = '67efb7e5ca221cd5151ff618'; // или: '67ebe1845b1c86ef0ad1294d'
 
   if (targetFolderId) {
     formData.append('folderId', targetFolderId);
@@ -25,7 +25,7 @@ document.getElementById('folderInput').addEventListener('change', async (e) => {
     method: 'POST',
     headers: {
       Authorization:
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZpYWNoZXNsYXZib2NoYXJvdkBnbWFpbC5jb20iLCJzdWIiOiI2N2ViYWRlNmQyZjc3MGRmNTJkZWU0Y2MiLCJpYXQiOjE3NDM2ODM2MDQsImV4cCI6MTc0MzY4NDUwNH0.gDLODUwSlmpkgudCbY2O_2U_NA-FD-aBT8To7CzdCZQ',
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZpYWNoZXNsYXZib2NoYXJvdkBnbWFpbC5jb20iLCJzdWIiOiI2N2VmYjRkZjlhMWI1NjZiNjg5YmMzMTUiLCJpYXQiOjE3NDM3NjM4NTgsImV4cCI6MTc0Mzc2NDc1OH0.oIPseKQPBuIYpT-efHDPvS6NYEvZ4yWXgRVSfYNaGP8',
     },
     body: formData,
   });

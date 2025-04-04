@@ -3,11 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Folder, FolderDocument } from './schemas/folder.schema';
 import { CreateFolderDto } from './dto/create-folder.dto';
+import { File, FileDocument } from '../file/schemas/file.schema';
 
 @Injectable()
 export class FolderService {
   constructor(
     @InjectModel(Folder.name) private folderModel: Model<FolderDocument>,
+    @InjectModel(File.name) private fileModel: Model<FileDocument>,
   ) {}
 
   async create(dto: CreateFolderDto, ownerId: string) {
@@ -36,11 +38,25 @@ export class FolderService {
       parentFolderId: folderId ?? null,
     });
 
-    // файлы можно подтянуть позже через fileService или fileModel
+    const files = await this.fileModel.find({
+      ownerId,
+      folderId: folderId ?? null,
+      isDeleted: { $ne: true }, // если поддерживаешь корзину
+    });
 
-    return {
-      folders,
-    };
+    return { folders, files };
   }
+
+
+  async findById(id: string, ownerId: string) {
+    const folder = await this.folderModel.findOne({ _id: id, ownerId });
+  
+    if (!folder) {
+      throw new BadRequestException('Folder not found');
+    }
+  
+    return folder;
+  }
+  
   
 }
