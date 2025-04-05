@@ -12,6 +12,7 @@ import {
   NotFoundException,
   Param,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { FileService } from './file.service';
 import { AuthGuard } from '../../guards/auth.guard';
@@ -110,5 +111,12 @@ export class FileController {
   ) {
     const ownerId = req.user?.sub;
     return this.fileService.updateFile(id, ownerId, dto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  async deleteFile(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.fileService.softDeleteFile(id, ownerId);
   }
 }

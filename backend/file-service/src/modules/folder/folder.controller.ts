@@ -9,6 +9,7 @@ import {
   Query,
   Param,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
@@ -90,6 +91,11 @@ export class FolderController {
     const ownerId = req.user?.sub;
     return this.folderService.updateFolder(id, ownerId, dto);
   }
-  
 
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  async deleteFolder(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.folderService.softDeleteFolder(id, ownerId);
+  }
 }

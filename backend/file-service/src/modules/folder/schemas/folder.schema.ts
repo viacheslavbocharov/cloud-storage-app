@@ -19,6 +19,15 @@ export class Folder {
 
   @Prop()
   sharedToken?: string;
+
+  @Prop()
+  key?: string;
+
+  @Prop({ default: false })
+  isDeleted: boolean;
+
+  @Prop()
+  deletedAt?: Date;
 }
 
 export const FolderSchema = SchemaFactory.createForClass(Folder);

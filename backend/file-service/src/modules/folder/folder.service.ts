@@ -37,10 +37,26 @@ export class FolderService {
       );
     }
 
+    const folderPathParts = [];
+
+    if (dto.parentFolderId) {
+      folderPathParts.push(
+        ...(await this.buildFolderPathParts(dto.parentFolderId)),
+      );
+    }
+
+    folderPathParts.push(dto.name);
+
     const folder = new this.folderModel({
       ...dto,
       ownerId,
+      key: `${ownerId}/${folderPathParts.join('/')}`, 
     });
+
+    // const folder = new this.folderModel({
+    //   ...dto,
+    //   ownerId,
+    // });
     return folder.save();
   }
 
@@ -183,35 +199,81 @@ export class FolderService {
     return newFile.save();
   }
 
+  // async findOrCreateFolderPath(
+  //   pathParts: string[],
+  //   ownerId: string,
+  //   folderId: string | null = null,
+  // ): Promise<string | null> {
+  //   let currentParentId = folderId;
+
+  //   for (const name of pathParts) {
+  //     let folder = await this.folderModel.findOne({
+  //       name,
+  //       ownerId,
+  //       parentFolderId: currentParentId,
+  //       isDeleted: { $ne: true },
+  //     });
+
+  //     if (!folder) {
+  //       folder = new this.folderModel({
+  //         name,
+  //         ownerId,
+  //         parentFolderId: currentParentId,
+  //       });
+  //       await folder.save();
+  //     }
+
+  //     currentParentId = folder._id.toString();
+  //   }
+
+  //   return currentParentId;
+  // }
+
   async findOrCreateFolderPath(
     pathParts: string[],
     ownerId: string,
     folderId: string | null = null,
   ): Promise<string | null> {
     let currentParentId = folderId;
-
+    let currentKey = '';
+  
+    if (folderId) {
+      const parentFolder = await this.folderModel.findById(folderId).lean();
+      if (parentFolder?.key) {
+        currentKey = parentFolder.key;
+      }
+    } else {
+      currentKey = ownerId;
+    }
+  
     for (const name of pathParts) {
       let folder = await this.folderModel.findOne({
         name,
         ownerId,
         parentFolderId: currentParentId,
-        isDeleted: { $ne: true }, // 👈 добавить
+        isDeleted: { $ne: true },
       });
-
+  
       if (!folder) {
+        const fullKey = `${currentKey}/${name}`; // ← новый путь
+  
         folder = new this.folderModel({
           name,
           ownerId,
           parentFolderId: currentParentId,
+          key: fullKey,
         });
+  
         await folder.save();
       }
-
+  
       currentParentId = folder._id.toString();
+      currentKey = folder.key; // обновляем путь на следующую итерацию
     }
-
+  
     return currentParentId;
   }
+  
 
   async handleFolderUpload(
     files: Express.Multer.File[],
@@ -348,5 +410,44 @@ export class FolderService {
     folder.name = dto.name;
     await folder.save();
     return folder;
+  }
+
+  async softDeleteFolder(id: string, ownerId: string) {
+    const folder = await this.folderModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+    if (!folder) throw new NotFoundException('Folder not found');
+
+    // Рекурсивно удалить вложенные папки и файлы
+    await this._recursiveSoftDelete(id, ownerId);
+
+    return { message: 'Folder and contents soft-deleted successfully' };
+  }
+
+  private async _recursiveSoftDelete(folderId: string, ownerId: string) {
+    // Помечаем текущую папку
+    await this.folderModel.updateOne(
+      { _id: folderId, ownerId },
+      { isDeleted: true, deletedAt: new Date() },
+    );
+
+    // Помечаем все файлы в этой папке
+    await this.fileModel.updateMany(
+      { folderId, ownerId, isDeleted: { $ne: true } },
+      { isDeleted: true, deletedAt: new Date() },
+    );
+
+    // Находим вложенные папки
+    const subfolders = await this.folderModel.find({
+      parentFolderId: folderId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
+    for (const sub of subfolders) {
+      await this._recursiveSoftDelete(sub._id.toString(), ownerId);
+    }
   }
 }

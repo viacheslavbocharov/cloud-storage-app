@@ -157,4 +157,16 @@ export class FileService {
     await file.save();
     return file;
   }
+
+  async softDeleteFile(id: string, ownerId: string) {
+    const file = await this.fileModel.findOne({ _id: id, ownerId, isDeleted: { $ne: true } });
+    if (!file) throw new NotFoundException('File not found');
+  
+    file.isDeleted = true;
+    file.deletedAt = new Date();
+  
+    await file.save();
+    return { message: 'File soft-deleted successfully' };
+  }
+  
 }
