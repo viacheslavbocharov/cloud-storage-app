@@ -95,7 +95,11 @@ export class FileService {
   }
 
   async findById(id: string, ownerId: string) {
-    const file = await this.fileModel.findOne({ _id: id, ownerId });
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
 
     if (!file) {
       throw new BadRequestException('File not found');
@@ -105,7 +109,10 @@ export class FileService {
   }
 
   async findBySharedToken(token: string) {
-    const file = await this.fileModel.findOne({ sharedToken: token });
+    const file = await this.fileModel.findOne({
+      sharedToken: token,
+      isDeleted: { $ne: true },
+    });
 
     if (!file || file.access !== 'link') {
       throw new BadRequestException('Invalid or expired link');
@@ -115,7 +122,11 @@ export class FileService {
   }
 
   async shareFile(id: string, ownerId: string) {
-    const file = await this.fileModel.findOne({ _id: id, ownerId });
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
 
     if (!file) {
       throw new NotFoundException('File not found');
@@ -132,15 +143,18 @@ export class FileService {
   }
 
   async updateFile(id: string, ownerId: string, dto: UpdateFileDto) {
-    const file = await this.fileModel.findOne({ _id: id, ownerId });
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
     if (!file) throw new NotFoundException('File not found');
-  
+
     if (dto.originalName) file.originalName = dto.originalName;
     if (dto.access) file.access = dto.access;
-  
+
     await file.save();
     return file;
   }
-  
-
 }

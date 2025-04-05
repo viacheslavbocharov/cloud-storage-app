@@ -48,6 +48,7 @@ export class FolderService {
     const folders = await this.folderModel.find({
       ownerId,
       parentFolderId: folderId ?? null,
+      isDeleted: { $ne: true },
     });
 
     const files = await this.fileModel.find({
@@ -60,7 +61,11 @@ export class FolderService {
   }
 
   async findById(id: string, ownerId: string) {
-    const folder = await this.folderModel.findOne({ _id: id, ownerId });
+    const folder = await this.folderModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
 
     if (!folder) {
       throw new BadRequestException('Folder not found');
@@ -70,7 +75,12 @@ export class FolderService {
   }
 
   async shareFolder(id: string, ownerId: string) {
-    const folder = await this.folderModel.findOne({ _id: id, ownerId });
+    const folder = await this.folderModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
     if (!folder) throw new NotFoundException('Folder not found');
 
     folder.access = 'link';
@@ -89,7 +99,9 @@ export class FolderService {
     let currentId: string | null = folderId;
 
     while (currentId) {
-      const folder = await this.folderModel.findById(currentId).lean();
+      const folder = await this.folderModel
+        .findOne({ _id: currentId, isDeleted: { $ne: true } })
+        .lean();
       if (!folder) break;
 
       pathParts.unshift(folder.name);
@@ -106,7 +118,9 @@ export class FolderService {
     let currentId: string | null = folderId;
 
     while (currentId) {
-      const folder = await this.folderModel.findById(currentId).lean();
+      const folder = await this.folderModel
+        .findOne({ _id: currentId, isDeleted: { $ne: true } })
+        .lean();
       if (!folder) break;
 
       parts.unshift(folder.name);
@@ -181,6 +195,7 @@ export class FolderService {
         name,
         ownerId,
         parentFolderId: currentParentId,
+        isDeleted: { $ne: true }, // 👈 добавить
       });
 
       if (!folder) {
@@ -277,6 +292,7 @@ export class FolderService {
     const folders = await this.folderModel.find({
       ownerId,
       parentFolderId: folderId,
+      isDeleted: { $ne: true },
     });
 
     for (const folder of folders) {
@@ -308,7 +324,10 @@ export class FolderService {
   }
 
   async downloadSharedFolder(token: string, res: any) {
-    const folder = await this.folderModel.findOne({ sharedToken: token });
+    const folder = await this.folderModel.findOne({
+      sharedToken: token,
+      isDeleted: { $ne: true }, // 👈 добавить
+    });
 
     if (!folder || folder.access !== 'link') {
       throw new BadRequestException('Invalid or expired link');
@@ -318,12 +337,16 @@ export class FolderService {
   }
 
   async updateFolder(id: string, ownerId: string, dto: UpdateFolderDto) {
-    const folder = await this.folderModel.findOne({ _id: id, ownerId });
+    const folder = await this.folderModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true }, // 👈 добавить
+    });
+
     if (!folder) throw new NotFoundException('Folder not found');
-  
+
     folder.name = dto.name;
     await folder.save();
     return folder;
   }
-  
 }
