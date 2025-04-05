@@ -159,14 +159,60 @@ export class FileService {
   }
 
   async softDeleteFile(id: string, ownerId: string) {
-    const file = await this.fileModel.findOne({ _id: id, ownerId, isDeleted: { $ne: true } });
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
     if (!file) throw new NotFoundException('File not found');
-  
+
     file.isDeleted = true;
     file.deletedAt = new Date();
-  
+
     await file.save();
     return { message: 'File soft-deleted successfully' };
   }
-  
+
+  async restoreFile(id: string, ownerId: string) {
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: true, // только удалённые
+    });
+
+    if (!file) throw new NotFoundException('File not found or not deleted');
+
+    // восстанавливаем папки вверх по иерархии
+    if (file.folderId) {
+      await this._restoreFolderChain(file.folderId, ownerId);
+    }
+
+    file.isDeleted = false;
+    file.deletedAt = undefined;
+
+    await file.save();
+    return { message: 'File restored successfully' };
+  }
+
+  private async _restoreFolderChain(folderId: string, ownerId: string) {
+    const stack: string[] = [];
+
+    let currentId: string | null = folderId;
+
+    // собираем цепочку вверх
+    while (currentId) {
+      const folder = await this.folderModel.findById(currentId).lean();
+      if (!folder) break;
+      stack.unshift(currentId);
+      currentId = folder.parentFolderId ?? null;
+    }
+
+    // по очереди восстанавливаем (снизу вверх)
+    for (const id of stack) {
+      await this.folderModel.updateOne(
+        { _id: id, ownerId, isDeleted: true },
+        { isDeleted: false, deletedAt: undefined },
+      );
+    }
+  }
 }

@@ -450,4 +450,76 @@ export class FolderService {
       await this._recursiveSoftDelete(sub._id.toString(), ownerId);
     }
   }
+
+  async restoreFolder(id: string, ownerId: string) {
+    const folder = await this.folderModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: true,
+    });
+  
+    if (!folder) throw new NotFoundException('Folder not found or not deleted');
+  
+    // восстанавливаем цепочку вверх
+    if (folder.parentFolderId) {
+      await this._restoreFolderChain(folder.parentFolderId, ownerId);
+    }
+  
+    // восстанавливаем саму папку и вложения
+    await this._recursiveRestore(id, ownerId);
+  
+    return { message: 'Folder and contents restored successfully' };
+  }
+
+  private async _restoreFolderChain(folderId: string, ownerId: string) {
+    const stack: string[] = [];
+
+    let currentId: string | null = folderId;
+
+    // собираем цепочку вверх
+    while (currentId) {
+      const folder = await this.folderModel.findById(currentId).lean();
+      if (!folder) break;
+      stack.unshift(currentId);
+      currentId = folder.parentFolderId ?? null;
+    }
+
+    // по очереди восстанавливаем (снизу вверх)
+    for (const id of stack) {
+      await this.folderModel.updateOne(
+        { _id: id, ownerId, isDeleted: true },
+        { isDeleted: false, deletedAt: undefined },
+      );
+    }
+  }
+  
+  private async _recursiveRestore(folderId: string, ownerId: string) {
+    // восстанавливаем папку
+    await this.folderModel.updateOne(
+      { _id: folderId, ownerId },
+      { isDeleted: false, deletedAt: undefined }
+    );
+  
+    // восстанавливаем все файлы
+    await this.fileModel.updateMany(
+      { folderId, ownerId, isDeleted: true },
+      { isDeleted: false, deletedAt: undefined }
+    );
+  
+    // вложенные папки
+    const subfolders = await this.folderModel.find({
+      parentFolderId: folderId,
+      ownerId,
+      isDeleted: true,
+    });
+  
+    for (const sub of subfolders) {
+      await this._recursiveRestore(sub._id.toString(), ownerId);
+    }
+  }
+
+
+  
+
+  
 }

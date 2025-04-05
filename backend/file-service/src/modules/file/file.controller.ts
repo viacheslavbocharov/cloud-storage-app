@@ -119,4 +119,11 @@ export class FileController {
     const ownerId = req.user?.sub;
     return this.fileService.softDeleteFile(id, ownerId);
   }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/restore')
+  async restoreFile(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.fileService.restoreFile(id, ownerId);
+  }
 }
