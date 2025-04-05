@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FolderModule } from './modules/folder/folder.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CleanerModule } from './modules/cleaner/cleaner.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CleanerModule } from './modules/cleaner/cleaner.module';
     FolderModule,
     ScheduleModule.forRoot(),
     CleanerModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  (global as any).crypto = require('crypto');
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
