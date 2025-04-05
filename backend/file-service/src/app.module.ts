@@ -5,6 +5,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FileModule } from './modules/file/file.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FolderModule } from './modules/folder/folder.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CleanerModule } from './modules/cleaner/cleaner.module';
 
 @Module({
   imports: [
@@ -17,7 +19,9 @@ import { FolderModule } from './modules/folder/folder.module';
       }),
     }),
     FileModule,
-    FolderModule
+    FolderModule,
+    ScheduleModule.forRoot(),
+    CleanerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
