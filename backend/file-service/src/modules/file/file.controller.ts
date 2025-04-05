@@ -19,6 +19,7 @@ import { FileUploadManyInterceptor } from './interceptors/file-upload-many.inter
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
+import { UpdateFileDto } from './dto/update-file.dto';
 
 @Controller('files')
 export class FileController {
@@ -98,5 +99,16 @@ export class FileController {
     }
 
     return res.download(fullPath, file.originalName);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  async updateFile(
+    @Param('id') id: string,
+    @Req() req,
+    @Body() dto: UpdateFileDto,
+  ) {
+    const ownerId = req.user?.sub;
+    return this.fileService.updateFile(id, ownerId, dto);
   }
 }

@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as archiver from 'archiver';
 import { ConfigService } from '@nestjs/config';
+import { UpdateFolderDto } from './dto/update-folder.dto';
 
 @Injectable()
 export class FolderService {
@@ -248,13 +249,10 @@ export class FolderService {
     const folder = await this.folderModel.findOne({ _id: folderId, ownerId });
     if (!folder) throw new NotFoundException('Folder not found');
 
-    const folderPath = await this.buildFolderPath(folderId);
     const uploadRoot =
       this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
-    const baseDir = path.join(uploadRoot, ownerId, folderPath);
 
     const archive = archiver('zip', { zlib: { level: 9 } });
-
     archive.on('error', (err) => {
       throw err;
     });
@@ -262,8 +260,51 @@ export class FolderService {
     res.attachment(`${folder.name}.zip`);
     archive.pipe(res);
 
-    archive.directory(baseDir, false); // second param: remove base path in zip
+    // 🔁 Рекурсивно собрать все папки и файлы
+    await this.addFolderToArchive(archive, folderId, ownerId, '', uploadRoot);
+
     await archive.finalize();
+  }
+
+  private async addFolderToArchive(
+    archive: archiver.Archiver,
+    folderId: string,
+    ownerId: string,
+    currentPath: string,
+    uploadRoot: string,
+  ) {
+    // Найти подпапки
+    const folders = await this.folderModel.find({
+      ownerId,
+      parentFolderId: folderId,
+    });
+
+    for (const folder of folders) {
+      const folderPathInZip = path.join(currentPath, folder.name);
+      await this.addFolderToArchive(
+        archive,
+        folder._id.toString(),
+        ownerId,
+        folderPathInZip,
+        uploadRoot,
+      );
+    }
+
+    // Найти файлы
+    const files = await this.fileModel.find({
+      ownerId,
+      folderId,
+      isDeleted: { $ne: true },
+    });
+
+    for (const file of files) {
+      const fullPath = path.join(uploadRoot, file.key); // путь к uuid-файлу
+      const filePathInZip = path.join(currentPath, file.originalName); // путь с оригинальным именем
+
+      if (fs.existsSync(fullPath)) {
+        archive.file(fullPath, { name: filePathInZip });
+      }
+    }
   }
 
   async downloadSharedFolder(token: string, res: any) {
@@ -275,4 +316,14 @@ export class FolderService {
 
     return this.downloadFolderAsZip(folder._id.toString(), folder.ownerId, res);
   }
+
+  async updateFolder(id: string, ownerId: string, dto: UpdateFolderDto) {
+    const folder = await this.folderModel.findOne({ _id: id, ownerId });
+    if (!folder) throw new NotFoundException('Folder not found');
+  
+    folder.name = dto.name;
+    await folder.save();
+    return folder;
+  }
+  
 }

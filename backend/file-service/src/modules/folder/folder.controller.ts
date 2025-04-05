@@ -14,6 +14,7 @@ import { FolderService } from './folder.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { AuthGuard } from '../../guards/auth.guard';
 import { rawUploadMiddleware } from './middleware/raw-upload.middleware';
+import { UpdateFolderDto } from './dto/update-folder.dto';
 
 @Controller('folders')
 export class FolderController {
@@ -78,4 +79,17 @@ export class FolderController {
   async downloadSharedFolder(@Param('token') token: string, @Res() res) {
     return this.folderService.downloadSharedFolder(token, res);
   }
+
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  async updateFolder(
+    @Param('id') id: string,
+    @Req() req,
+    @Body() dto: UpdateFolderDto,
+  ) {
+    const ownerId = req.user?.sub;
+    return this.folderService.updateFolder(id, ownerId, dto);
+  }
+  
+
 }

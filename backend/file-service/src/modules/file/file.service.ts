@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
+import { UpdateFileDto } from './dto/update-file.dto';
 
 @Injectable()
 export class FileService {
@@ -129,5 +130,17 @@ export class FileService {
       sharedUrl: `/files/shared/${file.sharedToken}`,
     };
   }
+
+  async updateFile(id: string, ownerId: string, dto: UpdateFileDto) {
+    const file = await this.fileModel.findOne({ _id: id, ownerId });
+    if (!file) throw new NotFoundException('File not found');
+  
+    if (dto.originalName) file.originalName = dto.originalName;
+    if (dto.access) file.access = dto.access;
+  
+    await file.save();
+    return file;
+  }
+  
 
 }
