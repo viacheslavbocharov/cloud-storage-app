@@ -29,10 +29,28 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
     const port = Number(configService.get('PORT')) || 3000;
 
+    // ✅ Вывод зарегистрированных маршрутов
+    const server = app.getHttpServer();
+    const router = server._events.request._router;
+    const routes = [];
+
+    router.stack.forEach((layer) => {
+      if (layer.route) {
+        routes.push({
+          method: Object.keys(layer.route.methods)[0].toUpperCase(),
+          path: layer.route.path,
+        });
+      }
+    });
+
+    logger.log('🛣 Registered routes:');
+    routes.forEach((r) => {
+      logger.log(`→ ${r.method} ${r.path}`);
+    });
+
     await app.listen(port);
     logger.log(`🚀 API Gateway is running on http://localhost:${port}/api`);
   } catch (error) {
-    // Логируем ошибку при запуске
     Logger.error('❌ Failed to start API Gateway', error.stack);
     process.exit(1);
   }
