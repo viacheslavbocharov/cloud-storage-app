@@ -64,6 +64,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+  
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile.dev
+    image: cloud-storage-app-api-gateway:v1.0.0
+    container_name: api-gateway
+    depends_on:
+      - auth-service
+      - user-service
+      - file-service
+    env_file:
+      - ./backend/api-gateway/.env
+    ports:
+      - '3000:3000'
+    restart: always
+    volumes:
+      - ./backend/api-gateway:/app
+      - /app/node_modules
 
 volumes:
   mongo_data:

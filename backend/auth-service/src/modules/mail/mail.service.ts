@@ -17,7 +17,7 @@ export class MailService {
   }
 
   async sendVerificationLink(to: string, token: string) {
-    const link = `${this.configService.get('FRONTEND_URL')}/auth/verify-registration?token=${token}`;
+    const link = `${this.configService.get('FRONTEND_API_URL')}/auth/verify-registration?token=${token}`;
 
     const mailOptions = {
       from: `"Cloud Storage App"`,
@@ -34,8 +34,8 @@ export class MailService {
   }
 
   async sendResetPasswordEmail(to: string, token: string) {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+    const frontendUrl = this.configService.get<string>('FRONTEND_API_URL');
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
 
     const mailOptions = {
       from: `"Cloud Storage App"`,

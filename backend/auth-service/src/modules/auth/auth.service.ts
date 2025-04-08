@@ -8,7 +8,6 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from './dto/create-user.dto';
 import { PreRegisterDto } from './dto/pre-register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +24,6 @@ export class AuthService {
     private configService: ConfigService,
     private mailService: MailService,
   ) {}
-
 
   async preRegister(dto: PreRegisterDto) {
     const existing = await this.userModel.findOne({ email: dto.email });

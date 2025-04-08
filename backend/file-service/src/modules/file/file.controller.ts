@@ -29,10 +29,6 @@ export class FileController {
     private configService: ConfigService,
   ) {}
 
-  // @Get('health')
-  // healthCheck() {
-  //   return { status: 'ok', service: 'file-service' };
-  // }
 
   @UseGuards(AuthGuard)
   @Post('upload')

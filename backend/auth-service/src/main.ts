@@ -21,6 +21,7 @@ async function bootstrap() {
     'SMTP_PASS',
     'RESET_TOKEN_EXPIRATION',
     'FRONTEND_URL',
+    'FRONTEND_API_URL',
   ];
   requiredEnvVars.forEach((envVar) => {
     if (!configService.get(envVar)) {

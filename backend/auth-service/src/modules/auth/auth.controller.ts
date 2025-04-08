@@ -49,8 +49,13 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   async logout(@Req() req) {
-    return this.authService.logout(req.user.userId);
+    const result = await this.authService.logout(req.user.userId);
+    console.log('📤 Logout response:', result);
+    return result;
   }
+  // async logout(@Req() req) {
+  //   return this.authService.logout(req.user.userId);
+  // }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('change-password')

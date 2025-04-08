@@ -1,0 +1,23 @@
+FROM node:18-alpine
+
+# Рабочая директория внутри контейнера
+WORKDIR /app
+
+# Копируем package.json и lock-файл
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm install
+
+# Устанавливаем глобальные утилиты для разработки
+RUN npm install -g ts-node tsconfig-paths nodemon
+
+# Копируем всё остальное
+COPY . .
+
+# Устанавливаем переменные окружения
+ENV PORT=3000
+ENV NODE_ENV=development
+
+# Запуск в режиме разработки
+CMD ["npm", "run", "start:dev"]
