@@ -23,7 +23,7 @@ export class SearchController {
   ) {}
 
 
-  @Get()
+  @Get() //+
   async search(@Query('query') query: string, @Query('isDeleted') isDeleted: string, @Req() req) {
     const url = `${this.configService.get('FILE_SERVICE_URL')}/search?query=${query}&isDeleted=${isDeleted}`;
     return this.proxy.forward('GET', url, null, req.headers);
