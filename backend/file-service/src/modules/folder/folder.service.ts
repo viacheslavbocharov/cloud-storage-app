@@ -617,4 +617,133 @@ export class FolderService {
       await this._recursiveRestore(sub._id.toString(), ownerId);
     }
   }
+
+  async moveItems(
+    items: { id: string; type: 'file' | 'folder' }[],
+    destinationId: string | null,
+    ownerId: string,
+  ) {
+    const updated = {
+      folders: 0,
+      files: 0,
+    };
+  
+    const pathIds: string[] = [];
+  
+    if (destinationId) {
+      pathIds.push(...(await this.getParentPathIds(destinationId)));
+      pathIds.push(destinationId);
+    }
+  
+    const basePath = await this.buildFolderPath(destinationId);
+    const baseKey = basePath ? `${ownerId}/${basePath}` : `${ownerId}`;
+  
+    for (const item of items) {
+      if (item.type === 'folder') {
+        // 🛡 Проверка: нельзя переместить саму папку в себя
+        if (item.id === destinationId) {
+          throw new BadRequestException('Cannot move a folder into itself');
+        }
+  
+        // 🛡 Проверка: нельзя переместить папку в одного из её потомков
+        const destinationPath = destinationId
+          ? [...pathIds, destinationId]
+          : [];
+  
+        const isNestedInItself = destinationPath.includes(item.id);
+        if (isNestedInItself) {
+          throw new BadRequestException('Cannot move a folder into its subfolder');
+        }
+  
+        await this._moveFolder(item.id, ownerId, destinationId, pathIds, baseKey);
+        updated.folders++;
+      }
+  
+      if (item.type === 'file') {
+        await this._moveFile(item.id, ownerId, destinationId, pathIds, baseKey);
+        updated.files++;
+      }
+    }
+  
+    return {
+      message: 'Items moved successfully',
+      updated,
+    };
+  }
+  
+
+
+  private async _moveFolder(
+    folderId: string,
+    ownerId: string,
+    newParentId: string | null,
+    newPath: string[],
+    baseKey: string,
+  ) {
+    const folder = await this.folderModel.findOne({
+      _id: folderId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+  
+    if (!folder) return;
+  
+    folder.parentFolderId = newParentId;
+    folder.path = [...newPath];
+    folder.key = `${baseKey}/${folder.name}`;
+    await folder.save();
+  
+    // рекурсивно обновляем вложенные папки и файлы
+    const subfolders = await this.folderModel.find({
+      parentFolderId: folderId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+  
+    for (const sub of subfolders) {
+      await this._moveFolder(
+        sub._id.toString(),
+        ownerId,
+        folder._id.toString(),
+        [...folder.path, folder._id.toString()],
+        `${folder.key}`
+      );
+    }
+  
+    const files = await this.fileModel.find({
+      folderId: folderId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+  
+    for (const file of files) {
+      file.path = [...folder.path, folder._id.toString()];
+      file.key = `${folder.key}/${file.filename}`;
+      await file.save();
+    }
+  }
+
+  private async _moveFile(
+    fileId: string,
+    ownerId: string,
+    newFolderId: string | null,
+    pathIds: string[],
+    baseKey: string,
+  ) {
+    const file = await this.fileModel.findOne({
+      _id: fileId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+  
+    if (!file) return;
+  
+    file.folderId = newFolderId;
+    file.path = [...pathIds];
+    file.key = `${baseKey}/${file.filename}`;
+    await file.save();
+  }
+  
+  
+  
 }

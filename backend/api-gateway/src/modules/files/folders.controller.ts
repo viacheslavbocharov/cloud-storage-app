@@ -71,12 +71,6 @@ export class FoldersController {
     });
   }
 
-  // @Get('/:id/download')
-  // async downloadFolder(@Param('id') id: string, @Req() req) {
-  //   const url = `${this.configService.get('FILE_SERVICE_URL')}/folders/${id}/download`;
-  //   return this.proxy.forward('GET', url, null, req.headers);
-  // }
-
   @Get('/:id/download') //+
   async downloadFolder(
     @Param('id') id: string,
@@ -160,5 +154,11 @@ export class FoldersController {
   async restoreFolder(@Param('id') id: string, @Req() req) {
     const url = `${this.configService.get('FILE_SERVICE_URL')}/folders/${id}/restore`;
     return this.proxy.forward('POST', url, null, req.headers);
+  }
+
+  @Post('/move')
+  async moveItems(@Body() body, @Req() req) {
+    const url = `${this.configService.get('FILE_SERVICE_URL')}/folders/move`;
+    return this.proxy.forward('POST', url, body, req.headers);
   }
 }

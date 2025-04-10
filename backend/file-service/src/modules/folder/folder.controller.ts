@@ -16,6 +16,7 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 import { AuthGuard } from '../../guards/auth.guard';
 import { rawUploadMiddleware } from './middleware/raw-upload.middleware';
 import { UpdateFolderDto } from './dto/update-folder.dto';
+import { MoveItemsDto } from './dto/move-items.dto';
 
 @Controller('folders')
 export class FolderController {
@@ -104,5 +105,12 @@ export class FolderController {
   async restoreFolder(@Param('id') id: string, @Req() req) {
     const ownerId = req.user?.sub;
     return this.folderService.restoreFolder(id, ownerId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('move')
+  async moveItems(@Body() dto: MoveItemsDto, @Req() req) {
+    const userId = req.user?.sub;
+    return this.folderService.moveItems(dto.items, dto.destinationId, userId);
   }
 }
