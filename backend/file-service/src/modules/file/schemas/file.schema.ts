@@ -5,13 +5,13 @@ export type FileDocument = HydratedDocument<File>;
 
 @Schema()
 export class File {
-  @Prop({ required: true }) // имя файла на диске (uuid + ext)
+  @Prop({ required: true })
   filename: string;
 
-  @Prop({ required: true }) // оригинальное имя от пользователя
+  @Prop({ required: true })
   originalName: string;
 
-  @Prop() // опциональное имя, заданное вручную (например, переименование)
+  @Prop()
   customName?: string;
 
   @Prop()
@@ -35,7 +35,10 @@ export class File {
   @Prop({ default: null })
   folderId: string | null;
 
-  @Prop({ required: true }) // путь для S3 или файловой системы
+  @Prop({ type: [String], default: [] }) // путь до файла
+  path: string[];
+
+  @Prop({ required: true }) // путь в файловой системе или S3
   key: string;
 
   @Prop({ default: false })
@@ -46,3 +49,4 @@ export class File {
 }
 
 export const FileSchema = SchemaFactory.createForClass(File);
+

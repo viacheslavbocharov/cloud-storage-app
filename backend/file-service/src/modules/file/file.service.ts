@@ -41,16 +41,77 @@ export class FileService {
     return pathParts.join('/');
   }
 
+  // async saveFileMetadata(
+  //   file: Express.Multer.File,
+  //   ownerId: string,
+  //   folderId: string | null = null,
+  // ) {
+  //   const folderPath = await this.buildFolderPath(folderId);
+  //   const uploadRoot =
+  //     this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
+
+  //   const filename = file.filename; // UUID.ext, имя, заданное в FileInterceptor
+  //   const key = folderPath
+  //     ? `${ownerId}/${folderPath}/${filename}`
+  //     : `${ownerId}/${filename}`;
+
+  //   const fullPath = path.join(uploadRoot, key);
+
+  //   console.log('[📂 FILE DEBUG]', {
+  //     folderPath,
+  //     key,
+  //     fullPath,
+  //   });
+
+  //   const sourcePath = file.path; // ← фактический путь к файлу в temp
+
+  //   // Создаём папки
+  //   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+
+  //   try {
+  //     // Копируем файл из temp → в нужную папку
+  //     fs.copyFileSync(sourcePath, fullPath);
+
+  //     // Удаляем оригинал из temp
+  //     fs.unlinkSync(sourcePath);
+  //   } catch (error) {
+  //     console.error('File move error:', error);
+  //     throw new InternalServerErrorException('Failed to move uploaded file');
+  //   }
+
+  //   // Сохраняем метаданные в MongoDB
+  //   const newFile = new this.fileModel({
+  //     filename,
+  //     originalName: file.originalname,
+  //     mimeType: file.mimetype,
+  //     size: file.size,
+  //     ownerId,
+  //     folderId,
+  //     key,
+  //     access: 'private',
+  //   });
+
+  //   return newFile.save();
+  // }
+
   async saveFileMetadata(
     file: Express.Multer.File,
     ownerId: string,
     folderId: string | null = null,
   ) {
-    const folderPath = await this.buildFolderPath(folderId);
+    const folderPath = await this.buildFolderPath(folderId); // для key
+    const pathIds: string[] = [];
+
+    // строим path (цепочку ID родительских папок)
+    if (folderId) {
+      pathIds.push(...(await this.getParentPathIds(folderId)));
+      pathIds.push(folderId); // текущая папка — в конец
+    }
+
     const uploadRoot =
       this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
 
-    const filename = file.filename; // UUID.ext, имя, заданное в FileInterceptor
+    const filename = file.filename;
     const key = folderPath
       ? `${ownerId}/${folderPath}/${filename}`
       : `${ownerId}/${filename}`;
@@ -61,25 +122,21 @@ export class FileService {
       folderPath,
       key,
       fullPath,
+      pathIds,
     });
 
-    const sourcePath = file.path; // ← фактический путь к файлу в temp
+    const sourcePath = file.path;
 
-    // Создаём папки
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
 
     try {
-      // Копируем файл из temp → в нужную папку
       fs.copyFileSync(sourcePath, fullPath);
-
-      // Удаляем оригинал из temp
       fs.unlinkSync(sourcePath);
     } catch (error) {
       console.error('File move error:', error);
       throw new InternalServerErrorException('Failed to move uploaded file');
     }
 
-    // Сохраняем метаданные в MongoDB
     const newFile = new this.fileModel({
       filename,
       originalName: file.originalname,
@@ -87,12 +144,28 @@ export class FileService {
       size: file.size,
       ownerId,
       folderId,
+      path: pathIds,
       key,
       access: 'private',
     });
 
     return newFile.save();
   }
+
+  private async getParentPathIds(folderId: string): Promise<string[]> {
+    const path: string[] = [];
+    let currentId: string | null = folderId;
+  
+    while (currentId) {
+      const folder = await this.folderModel.findById(currentId).lean();
+      if (!folder) break;
+      path.unshift(folder._id.toString());
+      currentId = folder.parentFolderId;
+    }
+  
+    return path;
+  }
+  
 
   async findById(id: string, ownerId: string) {
     const file = await this.fileModel.findOne({
