@@ -84,5 +84,21 @@ services:
       - ./backend/api-gateway:/app
       - /app/node_modules
 
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile.dev
+    container_name: front
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+    restart: always
+    environment:
+      - ROLLUP_USE_NATIVE=false
+    command: npm run dev
+
+
 volumes:
   mongo_data:
