@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const logger = new Logger('API-Gateway');
@@ -12,7 +13,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
       bufferLogs: true,
     });
-
+    app.use(cookieParser());
     app.setGlobalPrefix('api');
     app.enableCors();
 
@@ -25,6 +26,7 @@ async function bootstrap() {
         transform: true,
       }),
     );
+
 
     const configService = app.get(ConfigService);
     const port = Number(configService.get('PORT')) || 3000;

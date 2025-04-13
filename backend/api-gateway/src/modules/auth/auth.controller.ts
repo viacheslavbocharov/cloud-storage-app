@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Patch, Query, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Patch,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FetchProxyService } from 'src/common/proxy/fetch-proxy.service';
 
@@ -22,10 +31,22 @@ export class AuthController {
     return this.proxy.forward('GET', url, null, req.headers);
   }
 
+  // @Post('login') //+
+  // async login(@Body() body: any, @Req() req) {
+  //   const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/login`;
+  //   return this.proxy.forward('POST', url, body, req.headers);
+  // }
   @Post('login') //+
-  async login(@Body() body: any, @Req() req) {
+  async login(@Body() body: any, @Req() req, @Res() res) {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/login`;
-    return this.proxy.forward('POST', url, body, req.headers);
+    const result = await this.proxy.forward(
+      'POST',
+      url,
+      body,
+      req.headers,
+      res,
+    );
+    return res.send(result); // обязательно вручную отправить ответ
   }
 
   @Get('protected') //+
@@ -39,12 +60,36 @@ export class AuthController {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/refresh`;
     return this.proxy.forward('POST', url, body, req.headers);
   }
+  // @Post('refresh')
+  // async refresh(@Req() req, @Res() res) {
+  //   const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/refresh`;
+  //   const result = await this.proxy.forward(
+  //     'POST',
+  //     url,
+  //     null,
+  //     req.headers,
+  //     res,
+  //   );
+  //   return res.send(result);
+  // }
 
   @Post('logout') //+
   async logout(@Req() req) {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/logout`;
     return this.proxy.forward('POST', url, null, req.headers);
   }
+  // @Post('logout')
+  // async logout(@Req() req, @Res() res) {
+  //   const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/logout`;
+  //   const result = await this.proxy.forward(
+  //     'POST',
+  //     url,
+  //     null,
+  //     req.headers,
+  //     res,
+  //   );
+  //   return res.send(result);
+  // }
 
   @Patch('change-password') //+
   async changePassword(@Body() body: any, @Req() req) {

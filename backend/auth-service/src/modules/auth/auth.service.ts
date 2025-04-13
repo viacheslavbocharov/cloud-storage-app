@@ -14,6 +14,8 @@ import { ConfigService } from '@nestjs/config';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { MailService } from '../mail/mail.service';
+import { Response } from 'express';
+
 
 @Injectable()
 export class AuthService {
@@ -84,78 +86,172 @@ export class AuthService {
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+  // async login(loginDto: LoginDto) {
+  //   const { email, password } = loginDto;
 
+  //   const user = await this.userModel.findOne({ email });
+  //   if (!user || !(await bcrypt.compare(password, user.password))) {
+  //     throw new UnauthorizedException('Invalid credentials');
+  //   }
+
+  //   const payload = { email: user.email, sub: user._id };
+
+  //   const accessToken = this.jwtService.sign(payload, {
+  //     expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
+  //   });
+
+  //   const refreshToken = this.jwtService.sign(payload, {
+  //     expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
+  //   });
+
+  //   const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+  //   await this.userModel.findByIdAndUpdate(user._id, {
+  //     refreshToken: hashedRefreshToken,
+  //   });
+
+  //   return { accessToken, refreshToken };
+  // }
+
+  async login(loginDto: LoginDto, res: Response) {
+    const { email, password } = loginDto;
+  
     const user = await this.userModel.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
+  
     const payload = { email: user.email, sub: user._id };
-
+  
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
     });
-
+  
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
     });
-
+  
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     await this.userModel.findByIdAndUpdate(user._id, {
       refreshToken: hashedRefreshToken,
     });
-
-    return { accessToken, refreshToken };
+  
+    // 👇 Устанавливаем refreshToken как httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+    });
+  
+    return res.json({ accessToken });
   }
+  
 
-  async refresh(refreshTokenDto: RefreshTokenDto) {
-    const { refreshToken } = refreshTokenDto;
+  // async refresh(refreshTokenDto: RefreshTokenDto) {
+  //   const { refreshToken } = refreshTokenDto;
 
+  //   try {
+  //     const payload = this.jwtService.verify(refreshToken, {
+  //       secret: this.configService.get<string>('JWT_SECRET'),
+  //     });
+
+  //     const user = await this.userModel.findById(payload.sub);
+  //     if (!user || !user.refreshToken) {
+  //       throw new UnauthorizedException('Refresh token not found');
+  //     }
+
+  //     const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
+  //     if (!isMatch) {
+  //       throw new UnauthorizedException('Invalid refresh token');
+  //     }
+
+  //     const newPayload = { email: user.email, sub: user._id };
+
+  //     const newAccessToken = this.jwtService.sign(newPayload, {
+  //       expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
+  //     });
+
+  //     const newRefreshToken = this.jwtService.sign(newPayload, {
+  //       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
+  //     });
+
+  //     const hashedNewRefreshToken = await bcrypt.hash(newRefreshToken, 10);
+  //     await this.userModel.findByIdAndUpdate(user._id, {
+  //       refreshToken: hashedNewRefreshToken,
+  //     });
+
+  //     return {
+  //       accessToken: newAccessToken,
+  //       refreshToken: newRefreshToken,
+  //     };
+  //   } catch (err) {
+  //     throw new UnauthorizedException('Invalid or expired refresh token');
+  //   }
+  // }
+
+  async refresh(refreshToken: string, res: Response) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+  
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
-
+  
       const user = await this.userModel.findById(payload.sub);
       if (!user || !user.refreshToken) {
         throw new UnauthorizedException('Refresh token not found');
       }
-
+  
       const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
       if (!isMatch) {
         throw new UnauthorizedException('Invalid refresh token');
       }
-
+  
       const newPayload = { email: user.email, sub: user._id };
-
+  
       const newAccessToken = this.jwtService.sign(newPayload, {
         expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
       });
-
+  
       const newRefreshToken = this.jwtService.sign(newPayload, {
         expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
       });
-
+  
       const hashedNewRefreshToken = await bcrypt.hash(newRefreshToken, 10);
       await this.userModel.findByIdAndUpdate(user._id, {
         refreshToken: hashedNewRefreshToken,
       });
-
-      return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
-      };
+  
+      // 🍪 Устанавливаем новый refreshToken в cookie
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/api/auth/refresh',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      });
+  
+      // ✅ Возвращаем только accessToken
+      return { accessToken: newAccessToken };
+  
     } catch (err) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
+  
+
+  // async logout(userId: string): Promise<{ message: string }> {
+  //   await this.userModel.findByIdAndUpdate(userId, { refreshToken: null });
+  //   return { message: 'Logged out successfully' };
+  // }
 
   async logout(userId: string): Promise<{ message: string }> {
     await this.userModel.findByIdAndUpdate(userId, { refreshToken: null });
     return { message: 'Logged out successfully' };
   }
+  
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
     const { oldPassword, newPassword } = dto;
