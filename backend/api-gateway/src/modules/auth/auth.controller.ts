@@ -20,7 +20,6 @@ export class AuthController {
 
   @Post('pre-register') //+
   async preRegister(@Body() body: any, @Req() req) {
-    console.log('💬 GATEWAY BODY:', body);
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/pre-register`;
     return this.proxy.forward('POST', url, body, req.headers);
   }
@@ -31,11 +30,6 @@ export class AuthController {
     return this.proxy.forward('GET', url, null, req.headers);
   }
 
-  // @Post('login') //+
-  // async login(@Body() body: any, @Req() req) {
-  //   const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/login`;
-  //   return this.proxy.forward('POST', url, body, req.headers);
-  // }
   @Post('login') //+
   async login(@Body() body: any, @Req() req, @Res() res) {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/login`;
@@ -46,13 +40,7 @@ export class AuthController {
       req.headers,
       res,
     );
-    return res.send(result); // обязательно вручную отправить ответ
-  }
-
-  @Get('protected') //+
-  async getProtected(@Req() req) {
-    const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/protected`;
-    return this.proxy.forward('GET', url, null, req.headers);
+    return res.send(result);
   }
 
   @Post('refresh') //+
@@ -60,36 +48,12 @@ export class AuthController {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/refresh`;
     return this.proxy.forward('POST', url, body, req.headers);
   }
-  // @Post('refresh')
-  // async refresh(@Req() req, @Res() res) {
-  //   const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/refresh`;
-  //   const result = await this.proxy.forward(
-  //     'POST',
-  //     url,
-  //     null,
-  //     req.headers,
-  //     res,
-  //   );
-  //   return res.send(result);
-  // }
 
   @Post('logout') //+
   async logout(@Req() req) {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/logout`;
     return this.proxy.forward('POST', url, null, req.headers);
   }
-  // @Post('logout')
-  // async logout(@Req() req, @Res() res) {
-  //   const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/logout`;
-  //   const result = await this.proxy.forward(
-  //     'POST',
-  //     url,
-  //     null,
-  //     req.headers,
-  //     res,
-  //   );
-  //   return res.send(result);
-  // }
 
   @Patch('change-password') //+
   async changePassword(@Body() body: any, @Req() req) {

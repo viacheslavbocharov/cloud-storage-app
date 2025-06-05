@@ -43,48 +43,48 @@ export class AuthService {
     return { message: 'Verification link sent to your email' };
   }
 
-  async verifyRegistration(token: string) {
-    try {
-      const payload = this.jwtService.verify(token, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-      });
+  // async verifyRegistration(token: string) {
+  //   try {
+  //     const payload = this.jwtService.verify(token, {
+  //       secret: this.configService.get<string>('JWT_SECRET'),
+  //     });
 
-      const { email, password, firstName, lastName } = payload;
+  //     const { email, password, firstName, lastName } = payload;
 
-      const exists = await this.userModel.findOne({ email });
-      if (exists) throw new BadRequestException('User already exists');
+  //     const exists = await this.userModel.findOne({ email });
+  //     if (exists) throw new BadRequestException('User already exists');
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+  //     const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = await this.userModel.create({
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        role: 'user',
-        isEmailVerified: true,
-        refreshToken: null,
-      });
+  //     const user = await this.userModel.create({
+  //       email,
+  //       password: hashedPassword,
+  //       firstName,
+  //       lastName,
+  //       role: 'user',
+  //       isEmailVerified: true,
+  //       refreshToken: null,
+  //     });
 
-      const jwtPayload = { email: user.email, sub: user._id };
+  //     const jwtPayload = { email: user.email, sub: user._id };
 
-      const accessToken = this.jwtService.sign(jwtPayload, {
-        expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
-      });
+  //     const accessToken = this.jwtService.sign(jwtPayload, {
+  //       expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
+  //     });
 
-      const refreshToken = this.jwtService.sign(jwtPayload, {
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
-      });
+  //     const refreshToken = this.jwtService.sign(jwtPayload, {
+  //       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
+  //     });
 
-      await this.userModel.findByIdAndUpdate(user._id, {
-        refreshToken: await bcrypt.hash(refreshToken, 10),
-      });
+  //     await this.userModel.findByIdAndUpdate(user._id, {
+  //       refreshToken: await bcrypt.hash(refreshToken, 10),
+  //     });
 
-      return { accessToken, refreshToken };
-    } catch {
-      throw new UnauthorizedException('Invalid or expired verification link');
-    }
-  }
+  //     return { accessToken, refreshToken };
+  //   } catch {
+  //     throw new UnauthorizedException('Invalid or expired verification link');
+  //   }
+  // }
 
   // async login(loginDto: LoginDto) {
   //   const { email, password } = loginDto;
@@ -111,6 +111,56 @@ export class AuthService {
 
   //   return { accessToken, refreshToken };
   // }
+  async verifyRegistration(token: string, res: Response) {
+  try {
+    const payload = this.jwtService.verify(token, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+    });
+
+    const { email, password, firstName, lastName } = payload;
+
+    const exists = await this.userModel.findOne({ email });
+    if (exists) throw new BadRequestException('User already exists');
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.userModel.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      role: 'user',
+      isEmailVerified: true,
+      refreshToken: null,
+    });
+
+    const jwtPayload = { email: user.email, sub: user._id };
+
+    const accessToken = this.jwtService.sign(jwtPayload, {
+      expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
+    });
+
+    const refreshToken = this.jwtService.sign(jwtPayload, {
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION'),
+    });
+
+    await this.userModel.findByIdAndUpdate(user._id, {
+      refreshToken: await bcrypt.hash(refreshToken, 10),
+    });
+
+    // Установим refreshToken в HttpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+    });
+
+    return { accessToken };
+  } catch {
+    throw new UnauthorizedException('Invalid or expired verification link');
+  }
+}
 
   async login(loginDto: LoginDto, res: Response) {
     const { email, password } = loginDto;

@@ -28,14 +28,13 @@ export class AuthController {
   }
 
   @Get('verify-registration')
-  async verifyRegistration(@Query('token') token: string) {
-    return this.authService.verifyRegistration(token);
+  async verifyRegistration(
+    @Query('token') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.verifyRegistration(token, res);
   }
 
-  // @Post('login')
-  // async login(@Body() loginDto: LoginDto) {
-  //   return this.authService.login(loginDto);
-  // }
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
@@ -44,16 +43,12 @@ export class AuthController {
     return this.authService.login(loginDto, res);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('protected')
-  getProtected(@Req() req) {
-    return { message: 'You have access!', user: req.user };
-  }
-
-  // @Post('refresh')
-  // async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
-  //   return this.authService.refresh(refreshTokenDto);
+  // @UseGuards(AuthGuard('jwt'))
+  // @Get('protected')
+  // getProtected(@Req() req) {
+  //   return { message: 'You have access!', user: req.user };
   // }
+
   @Post('refresh')
   async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken;

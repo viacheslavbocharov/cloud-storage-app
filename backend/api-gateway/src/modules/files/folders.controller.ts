@@ -156,7 +156,7 @@ export class FoldersController {
     return this.proxy.forward('POST', url, null, req.headers);
   }
 
-  @Post('/move')
+  @Post('/move') //+
   async moveItems(@Body() body, @Req() req) {
     const url = `${this.configService.get('FILE_SERVICE_URL')}/folders/move`;
     return this.proxy.forward('POST', url, body, req.headers);

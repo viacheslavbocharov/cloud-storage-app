@@ -250,33 +250,33 @@ export class FolderService {
   ) {
     const folderPath = await this.buildFolderPath(folderId); // путь типа: Projects/ReactApp
     const pathIds: string[] = [];
-  
+
     if (folderId) {
       pathIds.push(...(await this.getParentPathIds(folderId)));
       pathIds.push(folderId); // добавляем текущую папку
     }
-  
+
     const uploadRoot =
       this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
-  
+
     const filename = file.filename; // UUID.ext
     const key = folderPath
       ? `${ownerId}/${folderPath}/${filename}`
       : `${ownerId}/${filename}`;
-  
+
     const fullPath = path.join(uploadRoot, key);
-  
+
     console.log('[📂 FILE DEBUG]', {
       folderPath,
       key,
       fullPath,
       pathIds,
     });
-  
+
     const sourcePath = file.path;
-  
+
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  
+
     try {
       fs.copyFileSync(sourcePath, fullPath);
       fs.unlinkSync(sourcePath);
@@ -284,7 +284,7 @@ export class FolderService {
       console.error('File move error:', error);
       throw new InternalServerErrorException('Failed to move uploaded file');
     }
-  
+
     const newFile = new this.fileModel({
       filename,
       originalName: file.originalname,
@@ -296,7 +296,7 @@ export class FolderService {
       key,
       access: 'private',
     });
-  
+
     return newFile.save();
   }
 
@@ -627,51 +627,75 @@ export class FolderService {
       folders: 0,
       files: 0,
     };
-  
+
     const pathIds: string[] = [];
-  
+
+    // if (destinationId) {
+    //   pathIds.push(...(await this.getParentPathIds(destinationId)));
+    //   pathIds.push(destinationId);
+    // }
+
+    // 🛡 Проверка: destinationId не должен быть файлом
     if (destinationId) {
+      const destinationFolder = await this.folderModel.findOne({
+        _id: destinationId,
+        ownerId,
+        isDeleted: { $ne: true },
+      });
+
+      if (!destinationFolder) {
+        throw new BadRequestException(
+          'Destination folder does not exist or is not a folder',
+        );
+      }
+
       pathIds.push(...(await this.getParentPathIds(destinationId)));
       pathIds.push(destinationId);
     }
-  
+
     const basePath = await this.buildFolderPath(destinationId);
     const baseKey = basePath ? `${ownerId}/${basePath}` : `${ownerId}`;
-  
+
     for (const item of items) {
       if (item.type === 'folder') {
         // 🛡 Проверка: нельзя переместить саму папку в себя
         if (item.id === destinationId) {
           throw new BadRequestException('Cannot move a folder into itself');
         }
-  
+
         // 🛡 Проверка: нельзя переместить папку в одного из её потомков
         const destinationPath = destinationId
           ? [...pathIds, destinationId]
           : [];
-  
+
         const isNestedInItself = destinationPath.includes(item.id);
         if (isNestedInItself) {
-          throw new BadRequestException('Cannot move a folder into its subfolder');
+          throw new BadRequestException(
+            'Cannot move a folder into its subfolder',
+          );
         }
-  
-        await this._moveFolder(item.id, ownerId, destinationId, pathIds, baseKey);
+
+        await this._moveFolder(
+          item.id,
+          ownerId,
+          destinationId,
+          pathIds,
+          baseKey,
+        );
         updated.folders++;
       }
-  
+
       if (item.type === 'file') {
         await this._moveFile(item.id, ownerId, destinationId, pathIds, baseKey);
         updated.files++;
       }
     }
-  
+
     return {
       message: 'Items moved successfully',
       updated,
     };
   }
-  
-
 
   private async _moveFolder(
     folderId: string,
@@ -685,37 +709,37 @@ export class FolderService {
       ownerId,
       isDeleted: { $ne: true },
     });
-  
+
     if (!folder) return;
-  
+
     folder.parentFolderId = newParentId;
     folder.path = [...newPath];
     folder.key = `${baseKey}/${folder.name}`;
     await folder.save();
-  
+
     // рекурсивно обновляем вложенные папки и файлы
     const subfolders = await this.folderModel.find({
       parentFolderId: folderId,
       ownerId,
       isDeleted: { $ne: true },
     });
-  
+
     for (const sub of subfolders) {
       await this._moveFolder(
         sub._id.toString(),
         ownerId,
         folder._id.toString(),
         [...folder.path, folder._id.toString()],
-        `${folder.key}`
+        `${folder.key}`,
       );
     }
-  
+
     const files = await this.fileModel.find({
       folderId: folderId,
       ownerId,
       isDeleted: { $ne: true },
     });
-  
+
     for (const file of files) {
       file.path = [...folder.path, folder._id.toString()];
       file.key = `${folder.key}/${file.filename}`;
@@ -735,15 +759,12 @@ export class FolderService {
       ownerId,
       isDeleted: { $ne: true },
     });
-  
+
     if (!file) return;
-  
+
     file.folderId = newFolderId;
     file.path = [...pathIds];
     file.key = `${baseKey}/${file.filename}`;
     await file.save();
   }
-  
-  
-  
 }
