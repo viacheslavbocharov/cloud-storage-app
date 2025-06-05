@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router-dom';
 //   };
 
 //   return (
-   
+
 //           <>
 
 //           {/* <Formik
@@ -49,7 +49,6 @@ import { useNavigate } from 'react-router-dom';
 //               </button>
 //             </Form>
 //           </Formik> */}
-  
 
 //       <div className="min-h-screen bg-base-300 flex items-center justify-center p-3">
 //         <div className="bg-base-100 p-10 rounded-2xl shadow-lg w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -136,7 +135,7 @@ import { useNavigate } from 'react-router-dom';
 
 //             <div className="flex justify-between text-sm mt-2">
 //             <a className="link link-hover  text-blue-600 mr-4 font-semibold">Forgot?</a>
-       
+
 //             </div>
 
 //             <div className="mt-4 text-right">
@@ -154,20 +153,20 @@ import { useNavigate } from 'react-router-dom';
 // export default LoginPage;
 
 const LoginPage = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSubmit = async (values: { email: string; password: string }) => {
     try {
-      const response = await api.post('/auth/login', values)
-      const { accessToken } = response.data
+      const response = await api.post('/auth/login', values);
+      const { accessToken } = response.data;
 
-      localStorage.setItem('accessToken', accessToken)
-      navigate('/dashboard')
+      localStorage.setItem('accessToken', accessToken);
+      navigate('/dashboard');
     } catch (err) {
-      console.error(err)
-      alert('Login failed. Please try again.')
+      console.error(err);
+      alert('Login failed. Please try again.');
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-base-300 flex items-center justify-center p-3">
@@ -182,7 +181,9 @@ const LoginPage = () => {
         <Formik
           initialValues={{ email: '', password: '' }}
           validationSchema={Yup.object({
-            email: Yup.string().email('Invalid email').required('Email is required'),
+            email: Yup.string()
+              .email('Invalid email')
+              .required('Email is required'),
             password: Yup.string()
               .min(8, 'Must be 8 characters or more')
               .matches(/[A-Z]/, 'At least one uppercase letter')
@@ -195,35 +196,78 @@ const LoginPage = () => {
           <Form className="space-y-4">
             {/* Email */}
             <label className="input validator flex items-center gap-2">
-              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
+              <svg
+                className="h-[1em] opacity-50"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+              >
+                <g
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeWidth="2.5"
+                  fill="none"
+                  stroke="currentColor"
+                >
                   <rect width="20" height="16" x="2" y="4" rx="2" />
                   <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                 </g>
               </svg>
-              <Field name="email" type="email" placeholder="mail@site.com" className="grow" />
+              <Field
+                name="email"
+                type="email"
+                placeholder="mail@site.com"
+                className="grow"
+              />
             </label>
-            <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+            <ErrorMessage
+              name="email"
+              component="div"
+              className="text-red-500 text-sm"
+            />
 
             {/* Password */}
             <label className="input validator flex items-center gap-2">
-              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
+              <svg
+                className="h-[1em] opacity-50"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+              >
+                <g
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeWidth="2.5"
+                  fill="none"
+                  stroke="currentColor"
+                >
                   <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
                   <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
                 </g>
               </svg>
-              <Field name="password" type="password" placeholder="Password" className="grow" />
+              <Field
+                name="password"
+                type="password"
+                placeholder="Password"
+                className="grow"
+              />
             </label>
-            <ErrorMessage name="password" component="div" className="text-red-500 text-sm" />
+            <ErrorMessage
+              name="password"
+              component="div"
+              className="text-red-500 text-sm"
+            />
 
             <div className="flex justify-between text-sm mt-2">
-              <a className="link link-hover text-blue-600 font-semibold">Forgot?</a>
+              <a className="link link-hover text-blue-600 font-semibold">
+                Forgot?
+              </a>
             </div>
 
             {/* Кнопки */}
             <div className="mt-4 text-right">
-              <button type="button" className="btn btn-ghost shadow-none hover:bg-transparent hover:shadow-none bg-transparent border-transparent text-blue-600 mr-4">
+              <button
+                type="button"
+                className="btn btn-ghost shadow-none hover:bg-transparent hover:shadow-none bg-transparent border-transparent text-blue-600 mr-4"
+              >
                 Register
               </button>
               <button type="submit" className="btn bg-blue-600 text-white">
@@ -234,7 +278,7 @@ const LoginPage = () => {
         </Formik>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

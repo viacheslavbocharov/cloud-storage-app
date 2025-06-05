@@ -89,7 +89,7 @@ services:
       context: ./front
       dockerfile: Dockerfile.dev
     image: cloud-storage-app-frontend:v1.1.0
-    container_name: frontend
+    container_name: front
     depends_on:
       - api-gateway
     env_file:
@@ -98,7 +98,8 @@ services:
       - "5173:5173"
     volumes:
       - ./front:/app
-      - /app/node_modules
+      - front_node_modules:/app/node_modules
+    #   - /app/node_modules
     restart: always
     environment:
       - ROLLUP_USE_NATIVE=false
@@ -107,3 +108,4 @@ services:
 
 volumes:
   mongo_data:
+  front_node_modules:
