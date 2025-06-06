@@ -2,9 +2,11 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   const handleSubmit = async (values: { email: string; password: string }) => {
     try {
@@ -15,7 +17,8 @@ const LoginPage = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error(err);
-      alert('Unvalid login or password. Please try again.');
+      setError('Invalid login or password.');
+      // alert('Unvalid login or password. Please try again.');
     }
   };
 
@@ -101,6 +104,8 @@ const LoginPage = () => {
               component="div"
               className="text-red-500 text-sm"
             />
+
+            {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
 
             <div className="flex justify-between text-sm mt-2">
               <a className="link link-hover text-blue-600 font-semibold">
