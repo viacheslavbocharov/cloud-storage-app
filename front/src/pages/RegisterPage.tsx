@@ -1,56 +1,370 @@
+// // import { Formik, Form, Field, ErrorMessage } from 'formik';
+// // import * as Yup from 'yup';
+
+// // const RegisterSchema = Yup.object().shape({
+// //   email: Yup.string().email('Invalid email').required('Email is required'),
+
+// //   password: Yup.string()
+// //     .min(8, 'Must be at least 8 characters')
+// //     .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
+// //     .matches(/[a-z]/, 'Must contain at least one lowercase letter')
+// //     .matches(/\d/, 'Must contain at least one number')
+// //     .required('Password is required'),
+
+// //   firstName: Yup.string(),
+// //   lastName: Yup.string(),
+// // });
+
+// // export default function RegisterPage() {
+// //   return (
+// //     <div className="min-h-screen flex items-center justify-center bg-base-200">
+// //       <div className="bg-base-100 shadow-xl rounded-xl p-10 w-full max-w-md">
+// //         <h1 className="text-2xl font-bold mb-2">Register</h1>
+// //         <p className="mb-6 text-sm text-base-content">to create your account</p>
+
+// //         <Formik
+// //           initialValues={{
+// //             email: '',
+// //             password: '',
+// //             firstName: '',
+// //             lastName: '',
+// //           }}
+// //           validationSchema={RegisterSchema}
+// //           onSubmit={(values) => {
+// //             console.log('Form submitted:', values);
+// //             // TODO: send to backend
+// //           }}
+// //         >
+// //           {({ isSubmitting }) => (
+// //             <Form className="flex flex-col gap-4">
+// //               <div>
+// //                 <Field
+// //                   type="email"
+// //                   name="email"
+// //                   placeholder="Email"
+// //                   className="input input-bordered w-full"
+// //                 />
+// //                 <ErrorMessage
+// //                   name="email"
+// //                   component="div"
+// //                   className="text-error text-sm mt-1"
+// //                 />
+// //               </div>
+
+// //               <div>
+// //                 <Field
+// //                   type="password"
+// //                   name="password"
+// //                   placeholder="Password"
+// //                   className="input input-bordered w-full"
+// //                 />
+// //                 <ErrorMessage
+// //                   name="password"
+// //                   component="div"
+// //                   className="text-error text-sm mt-1"
+// //                 />
+// //               </div>
+
+// //               <div>
+// //                 <Field
+// //                   type="text"
+// //                   name="firstName"
+// //                   placeholder="First Name (optional)"
+// //                   className="input input-bordered w-full"
+// //                 />
+// //                 <ErrorMessage
+// //                   name="firstName"
+// //                   component="div"
+// //                   className="text-error text-sm mt-1"
+// //                 />
+// //               </div>
+
+// //               <div>
+// //                 <Field
+// //                   type="text"
+// //                   name="lastName"
+// //                   placeholder="Last Name (optional)"
+// //                   className="input input-bordered w-full"
+// //                 />
+// //                 <ErrorMessage
+// //                   name="lastName"
+// //                   component="div"
+// //                   className="text-error text-sm mt-1"
+// //                 />
+// //               </div>
+
+// //               <button
+// //                 type="submit"
+// //                 className="btn bg-blue-600 text-white w-full mt-4"
+// //                 disabled={isSubmitting}
+// //               >
+// //                 {isSubmitting ? 'Registering...' : 'Register'}
+// //               </button>
+
+// //               <p className="text-sm text-center">
+// //                 Already have an account?{' '}
+// //                 <a href="/login" className="link link-primary">
+// //                   Sign in
+// //                 </a>
+// //               </p>
+// //             </Form>
+// //           )}
+// //         </Formik>
+// //       </div>
+// //     </div>
+// //   );
+// // }
+
+// import { Formik, Form, Field, ErrorMessage } from 'formik';
+// import * as Yup from 'yup';
+// import axios from 'axios';
+// import { useState } from 'react';
+
+// const RegisterSchema = Yup.object().shape({
+//   email: Yup.string().email('Invalid email').required('Email is required'),
+
+//   password: Yup.string()
+//     .min(8, 'Must be at least 8 characters')
+//     .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
+//     .matches(/[a-z]/, 'Must contain at least one lowercase letter')
+//     .matches(/\d/, 'Must contain at least one number')
+//     .required('Password is required'),
+
+//   firstName: Yup.string(),
+//   lastName: Yup.string(),
+// });
+
+// export default function RegisterPage() {
+//   const [serverError, setServerError] = useState('');
+//   const [successMessage, setSuccessMessage] = useState('');
+
+//   const handleSubmit = async (values: any, { setSubmitting, resetForm }: any) => {
+//     setServerError('');
+//     setSuccessMessage('');
+
+//     try {
+//       const response = await axios.post('/auth/pre-register', values);
+//       console.log(response.data); 
+//       setSuccessMessage('Check your email to verify your account.');
+//       resetForm();
+//     } catch (error: any) {
+//       setServerError(error?.response?.data?.message || 'Something went wrong');
+//     } finally {
+//       setSubmitting(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-base-200">
+//       <div className="bg-base-100 shadow-xl rounded-xl p-10 w-full max-w-md">
+//         <h1 className="text-2xl font-bold mb-2">Register</h1>
+//         <p className="mb-6 text-sm text-base-content">to create your account</p>
+
+//         <Formik
+//           initialValues={{
+//             email: '',
+//             password: '',
+//             firstName: '',
+//             lastName: '',
+//           }}
+//           validationSchema={RegisterSchema}
+//           onSubmit={handleSubmit}
+//         >
+//           {({ isSubmitting }) => (
+//             <Form className="flex flex-col gap-4">
+//               <div>
+//                 <Field
+//                   type="email"
+//                   name="email"
+//                   placeholder="Email"
+//                   className="input input-bordered w-full"
+//                 />
+//                 <ErrorMessage name="email" component="div" className="text-error text-sm mt-1" />
+//               </div>
+
+//               <div>
+//                 <Field
+//                   type="password"
+//                   name="password"
+//                   placeholder="Password"
+//                   className="input input-bordered w-full"
+//                 />
+//                 <ErrorMessage name="password" component="div" className="text-error text-sm mt-1" />
+//               </div>
+
+//               <div>
+//                 <Field
+//                   type="text"
+//                   name="firstName"
+//                   placeholder="First Name (optional)"
+//                   className="input input-bordered w-full"
+//                 />
+//                 <ErrorMessage name="firstName" component="div" className="text-error text-sm mt-1" />
+//               </div>
+
+//               <div>
+//                 <Field
+//                   type="text"
+//                   name="lastName"
+//                   placeholder="Last Name (optional)"
+//                   className="input input-bordered w-full"
+//                 />
+//                 <ErrorMessage name="lastName" component="div" className="text-error text-sm mt-1" />
+//               </div>
+
+//               {serverError && <div className="text-error text-sm">{serverError}</div>}
+//               {successMessage && <div className="text-success text-sm">{successMessage}</div>}
+
+//               <button
+//                 type="submit"
+//                 className="btn bg-blue-600 text-white w-full mt-4"
+//                 disabled={isSubmitting}
+//               >
+//                 {isSubmitting ? 'Registering...' : 'Register'}
+//               </button>
+
+//               <p className="text-sm text-center">
+//                 Already have an account?{' '}
+//                 <a href="/login" className="link link-primary">
+//                   Sign in
+//                 </a>
+//               </p>
+//             </Form>
+//           )}
+//         </Formik>
+//       </div>
+//     </div>
+//   );
+// }
+
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useState } from 'react';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
-const RegisterPage = () => {
+const RegisterSchema = Yup.object().shape({
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  password: Yup.string()
+    .min(8, 'Must be at least 8 characters')
+    .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
+    .matches(/[a-z]/, 'Must contain at least one lowercase letter')
+    .matches(/\d/, 'Must contain at least one number')
+    .required('Password is required'),
+  firstName: Yup.string(),
+  lastName: Yup.string(),
+});
+
+export default function RegisterPage() {
+  const [serverError, setServerError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (values: { email: string; password: string }) => {
+  const handleSubmit = async (
+    values: {
+      email: string;
+      password: string;
+      firstName?: string;
+      lastName?: string;
+    },
+    { setSubmitting, resetForm }: any
+  ) => {
+    setServerError('');
+    setSuccessMessage('');
+
     try {
       await api.post('/auth/pre-register', values);
-      alert('Check your email to confirm registration.');
-      navigate('/sign-in');
-    } catch (err) {
-      alert('Registration failed. Please try again.');
+      setSuccessMessage('Check your email to verify your account.');
+      resetForm();
+      navigate('/registration/success');
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || 'Something went wrong during registration.';
+      setServerError(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Register</h2>
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
+      <div className="bg-base-100 shadow-xl rounded-xl p-10 w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-2">Register</h1>
+        <p className="mb-6 text-sm text-base-content">to create your account</p>
 
         <Formik
-          initialValues={{ email: '', password: '' }}
-          validationSchema={Yup.object({
-            email: Yup.string().email('Invalid email').required('Required'),
-            password: Yup.string().min(6, 'Minimum 6 characters').required('Required'),
-          })}
+          initialValues={{
+            email: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+          }}
+          validationSchema={RegisterSchema}
           onSubmit={handleSubmit}
         >
-          <Form className="space-y-4">
-            <div>
-              <label htmlFor="email">Email</label>
-              <Field name="email" type="email" className="input" />
-              <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
-            </div>
+          {({ isSubmitting }) => (
+            <Form className="flex flex-col gap-4">
+              <div>
+                <Field
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  className="input input-bordered w-full"
+                />
+                <ErrorMessage name="email" component="div" className="text-error text-sm mt-1" />
+              </div>
 
-            <div>
-              <label htmlFor="password">Password</label>
-              <Field name="password" type="password" className="input" />
-              <ErrorMessage name="password" component="div" className="text-red-500 text-sm" />
-            </div>
+              <div>
+                <Field
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  className="input input-bordered w-full"
+                />
+                <ErrorMessage name="password" component="div" className="text-error text-sm mt-1" />
+              </div>
 
-            <button type="submit" className="w-full bg-green-500 text-white py-2 rounded">
-              Register
-            </button>
-          </Form>
+              <div>
+                <Field
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name (optional)"
+                  className="input input-bordered w-full"
+                />
+                <ErrorMessage name="firstName" component="div" className="text-error text-sm mt-1" />
+              </div>
+
+              <div>
+                <Field
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name (optional)"
+                  className="input input-bordered w-full"
+                />
+                <ErrorMessage name="lastName" component="div" className="text-error text-sm mt-1" />
+              </div>
+
+              {serverError && <div className="text-error text-sm">{serverError}</div>}
+              {successMessage && <div className="text-success text-sm">{successMessage}</div>}
+
+              <button
+                type="submit"
+                className="btn bg-blue-600 text-white w-full mt-4"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Registering...' : 'Register'}
+              </button>
+
+              <p className="text-sm text-center">
+                Already have an account?{' '}
+                <a href="/login" className="link link-primary">
+                  Sign in
+                </a>
+              </p>
+            </Form>
+          )}
         </Formik>
       </div>
     </div>
   );
-};
-
-export default RegisterPage;
-
+}

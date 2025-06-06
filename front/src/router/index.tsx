@@ -26,19 +26,19 @@ import RegisterPage from '../pages/RegisterPage';
 import VerifyRegistration from '../pages/VerifyRegistration';
 import DashboardPage from '../pages/DashboardPage';
 import PrivateRoute from './PrivateRoute';
+import RegistrationSuccessPage from '../pages/RegistrationSuccessPage';
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
   { path: '/login', element: <LoginPage /> },
-  { path: '/pre-register', element: <RegisterPage /> },
+  { path: '/registration', element: <RegisterPage /> },
+  { path: '/registration/success', element: <RegistrationSuccessPage /> },
   { path: '/verify-registration', element: <VerifyRegistration /> },
 
   // Pivate routes
   {
     element: <PrivateRoute />,
-    children: [
-      { path: '/dashboard', element: <DashboardPage /> },
-    ],
+    children: [{ path: '/dashboard', element: <DashboardPage /> }],
   },
 ]);
 
