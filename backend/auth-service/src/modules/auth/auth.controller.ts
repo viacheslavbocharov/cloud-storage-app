@@ -73,7 +73,8 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/auth/refresh',
+      // path: '/api/auth/refresh',
+      path: '/',
     });
 
     console.log('📤 Logout response:', result);

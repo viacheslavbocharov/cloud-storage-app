@@ -13,9 +13,12 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
       bufferLogs: true,
     });
+    app.enableCors({
+      origin: 'http://localhost:5173',
+      credentials: true,
+    });
     app.use(cookieParser());
     app.setGlobalPrefix('api');
-    app.enableCors();
 
     app.use(bodyParser.json({ limit: '10mb' }));
 
@@ -26,7 +29,6 @@ async function bootstrap() {
         transform: true,
       }),
     );
-
 
     const configService = app.get(ConfigService);
     const port = Number(configService.get('PORT')) || 3000;

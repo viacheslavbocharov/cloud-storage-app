@@ -277,6 +277,22 @@ const LoginPage = () => {
           </Form>
         </Formik>
       </div>
+      {/* refreshToken check */}
+      {/* <button
+        onClick={async () => {
+          try {
+            const response = await api.get('/users/me');
+            console.log('Данные пользователя:', response.data);
+            alert('Успешный ответ: ' + JSON.stringify(response.data));
+          } catch (error) {
+            console.error('Ошибка запроса:', error);
+            alert('Ошибка запроса (см. консоль)');
+          }
+        }}
+        className="btn mt-4 bg-green-500 text-white"
+      >
+        Проверить GET /user
+      </button> */}
     </div>
   );
 };
