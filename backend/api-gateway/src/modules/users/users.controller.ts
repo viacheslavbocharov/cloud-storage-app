@@ -2,8 +2,7 @@ import { Controller, Get, Patch, Delete, Body, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FetchProxyService } from 'src/common/proxy/fetch-proxy.service';
 
-
-@Controller('users')
+@Controller('user')
 export class UsersController {
   constructor(
     private readonly configService: ConfigService,
