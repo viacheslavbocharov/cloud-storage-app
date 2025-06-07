@@ -18,20 +18,19 @@ const LoginPage = () => {
     } catch (err) {
       console.error(err);
       setError('Invalid login or password.');
-      // alert('Unvalid login or password. Please try again.');
     }
   };
 
   return (
     <div className="min-h-screen bg-base-300 flex items-center justify-center p-3">
       <div className="bg-base-100 p-10 rounded-2xl shadow-lg w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Левая часть — заголовок */}
+        {/* Left side */}
         <div className="flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-2">Sign in</h2>
           <p className="text-sm text-base-content">to continue</p>
         </div>
 
-        {/* Правая часть — форма */}
+        {/* Right side */}
         <Formik
           initialValues={{ email: '', password: '' }}
           validationSchema={Yup.object({
@@ -113,7 +112,7 @@ const LoginPage = () => {
               </a>
             </div>
 
-            {/* Кнопки */}
+            {/* Buttons */}
             <div className="mt-4 text-right">
               <a
                 href="/registration"
