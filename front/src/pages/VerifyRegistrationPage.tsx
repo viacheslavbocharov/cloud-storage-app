@@ -63,5 +63,5 @@ export default function VerifyRegistrationPage() {
     );
   }
 
-  return null; // Success case: already redirected
+  return null;
 }
