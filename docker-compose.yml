@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:4.4
     container_name: mongo
     restart: always
     ports:
@@ -60,7 +60,7 @@ services:
       - /app/node_modules
       - ./backend/file-service/uploads:/app/uploads
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3003/files/health']
+      test: ['CMD-SHELL', 'curl -f http://localhost:3003/files/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -109,3 +109,117 @@ services:
 volumes:
   mongo_data:
   front_node_modules:
+
+# services:
+#   mongo:
+#     image: mongo:latest
+#     container_name: mongo
+#     restart: always
+#     ports:
+#       - '27017:27017'
+#     volumes:
+#       - mongo_data:/data/db
+
+#   auth-service:
+#     build:
+#       context: ./backend/auth-service
+#       dockerfile: Dockerfile.dev
+#     image: cloud-storage-app-auth-service:v1.1.0
+#     container_name: auth-service
+#     depends_on:
+#       - mongo
+#     env_file:
+#       - ./backend/auth-service/.env
+#     ports:
+#       - '3001:3001'
+#     restart: always
+#     volumes:
+#       - ./backend/auth-service:/app
+#       - node_modules_auth:/app/node_modules
+
+#   user-service:
+#     build:
+#       context: ./backend/user-service
+#       dockerfile: Dockerfile.dev
+#     image: cloud-storage-app-user-service:v1.1.0
+#     container_name: user-service
+#     depends_on:
+#       - mongo
+#     env_file:
+#       - ./backend/user-service/.env
+#     ports:
+#       - '3002:3002'
+#     restart: always
+#     volumes:
+#       - ./backend/user-service:/app
+#       - node_modules_user:/app/node_modules
+
+#   file-service:
+#     build:
+#       context: ./backend/file-service
+#       dockerfile: Dockerfile.dev
+#     image: cloud-storage-app-file-service:v1.1.0
+#     container_name: file-service
+#     depends_on:
+#       - mongo
+#     env_file:
+#       - ./backend/file-service/.env
+#     ports:
+#       - '3003:3003'
+#     restart: always
+#     volumes:
+#       - ./backend/file-service:/app
+#       - node_modules_file:/app/node_modules
+#       - ./backend/file-service/uploads:/app/uploads
+#     healthcheck:
+#       test: ['CMD-SHELL', 'curl -f http://localhost:3003/files/health || exit 1']
+#       interval: 10s
+#       timeout: 5s
+#       retries: 3
+
+#   api-gateway:
+#     build:
+#       context: ./backend/api-gateway
+#       dockerfile: Dockerfile.dev
+#     image: cloud-storage-app-api-gateway:v1.1.0
+#     container_name: api-gateway
+#     depends_on:
+#       - auth-service
+#       - user-service
+#       - file-service
+#     env_file:
+#       - ./backend/api-gateway/.env
+#     ports:
+#       - '3000:3000'
+#     restart: always
+#     volumes:
+#       - ./backend/api-gateway:/app
+#       - node_modules_gateway:/app/node_modules
+
+#   front:
+#     build:
+#       context: ./front
+#       dockerfile: Dockerfile.dev
+#     image: cloud-storage-app-frontend:v1.1.0
+#     container_name: front
+#     depends_on:
+#       - api-gateway
+#     env_file:
+#       - ./front/.env
+#     ports:
+#       - "5173:5173"
+#     volumes:
+#       - ./front:/app
+#       - front_node_modules:/app/node_modules
+#     restart: always
+#     environment:
+#       - ROLLUP_USE_NATIVE=false
+#     command: npm run dev
+
+# volumes:
+#   mongo_data:
+#   node_modules_auth:
+#   node_modules_user:
+#   node_modules_file:
+#   node_modules_gateway:
+#   front_node_modules:
