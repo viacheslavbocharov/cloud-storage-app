@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/axios';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from '@/components/ui/card';
 
 export default function VerifyRegistrationPage() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(
@@ -42,23 +49,34 @@ export default function VerifyRegistrationPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen space-y-4">
         <p className="text-lg text-base-content">Verifying your email...</p>
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       </div>
     );
   }
 
   if (status === 'error') {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-4">
-        <p className="text-red-600 text-lg">
-          Invalid or expired verification link
-        </p>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          onClick={() => navigate('/registration')}
-        >
-          Back to Registration
-        </button>
+      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="text-2xl font-bold text-red-600">
+                ⚠️ Invalid Link
+              </h1>
+              <p className="text-muted-foreground text-sm text-balance">
+                The verification link is invalid or has expired.
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => navigate('/registration')}
+              className="w-full mt-4"
+            >
+              Back to Registration
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

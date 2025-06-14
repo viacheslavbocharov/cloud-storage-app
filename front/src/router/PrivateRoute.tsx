@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { authGetMe } from '../utils/auth';
+import { Loader2 } from 'lucide-react';
 
 const PrivateRoute = () => {
   const [isValid, setIsValid] = useState<boolean | null>(null);
@@ -26,7 +27,7 @@ const PrivateRoute = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen space-y-4">
         <p className="text-lg text-base-content">Authorization checking...</p>
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       </div>
     );
   }

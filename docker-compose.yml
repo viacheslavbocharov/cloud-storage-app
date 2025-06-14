@@ -96,19 +96,27 @@ services:
       - ./front/.env
     ports:
       - "5173:5173"
+    # volumes:
+    #   - ./front:/app
+    #   - front_node_modules:/app/node_modules
+    # #   - /app/node_modules
+    # restart: always
+    # environment:
+    #   - ROLLUP_USE_NATIVE=false
+    # command: npm run dev
     volumes:
       - ./front:/app
-      - front_node_modules:/app/node_modules
-    #   - /app/node_modules
-    restart: always
+      - /app/node_modules
+    working_dir: /app
     environment:
       - ROLLUP_USE_NATIVE=false
     command: npm run dev
+    restart: unless-stopped
 
 
 volumes:
   mongo_data:
-  front_node_modules:
+  # front_node_modules:
 
 # services:
 #   mongo:

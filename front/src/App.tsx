@@ -1,23 +1,14 @@
-// import './App.css';
-
-// function App() {
-//   return (
-//     <>
-//       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-//         <h1 className="text-4xl font-bold text-blue-600">
-//           Tailwind is working!!!
-//         </h1>
-//       </div>
-//     </>
-//   );
-// }
-
-// export default App;
+import { ThemeProvider } from "@/components/theme-provider"
 
 import AppRouter from './router';
 
 function App() {
-  return <AppRouter />;
+    return (
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <AppRouter />
+    </ThemeProvider>
+  )
+  // return <AppRouter />;
 }
 
 export default App;

@@ -32,12 +32,63 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+
+//       if (isRefreshing) {
+//         return new Promise((resolve, reject) => {
+//           failedQueue.push({
+//             resolve: (token: string) => {
+//               originalRequest.headers.Authorization = `Bearer ${token}`;
+//               resolve(api(originalRequest));
+//             },
+//             reject: (err: any) => reject(err),
+//           });
+//         });
+//       }
+
+//       isRefreshing = true;
+
+//       try {
+//         const res = await api.post('/auth/refresh');
+//         const newAccessToken = res.data.accessToken;
+
+//         localStorage.setItem('accessToken', newAccessToken);
+//         api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+//         processQueue(null, newAccessToken);
+
+//         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+//         return api(originalRequest);
+//       } catch (err) {
+//         processQueue(err, null);
+//         localStorage.removeItem('accessToken');
+//         // throw err;
+//         return Promise.reject(err);
+//       } finally {
+//         isRefreshing = false;
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('/auth/login') &&
+      !originalRequest.url.includes('/auth/refresh')
+    ) {
       originalRequest._retry = true;
 
       if (isRefreshing) {
@@ -67,7 +118,7 @@ api.interceptors.response.use(
       } catch (err) {
         processQueue(err, null);
         localStorage.removeItem('accessToken');
-        throw err;
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }
@@ -76,5 +127,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;
