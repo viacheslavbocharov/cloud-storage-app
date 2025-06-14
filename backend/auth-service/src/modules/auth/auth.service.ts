@@ -193,7 +193,8 @@ export class AuthService {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
     });
   
-    return res.json({ accessToken });
+    // return res.json({ accessToken });
+    return { accessToken }; 
   }
   
 
