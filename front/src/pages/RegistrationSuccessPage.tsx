@@ -1,9 +1,5 @@
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card';
+import { Button } from '@/components/ui/login-01-button';
+import { Card, CardContent, CardHeader } from '@/components/ui/login-01-card';
 import { Link } from 'react-router-dom';
 
 export default function RegistrationSuccessPage() {

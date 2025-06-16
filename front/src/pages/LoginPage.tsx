@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import api from '../utils/axios';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/login-01-button';
+import { Card, CardContent, CardHeader } from '@/components/ui/login-01-card';
+import { Input } from '@/components/ui/login-01-input';
+import { Label } from '@/components/ui/login-01-label';
 import { cn } from '@/lib/utils';
 
 const LoginPage = () => {

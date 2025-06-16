@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/axios';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card';
+import { Button } from '@/components/ui/login-01-button';
+import { Card, CardContent, CardHeader } from '@/components/ui/login-01-card';
 
 export default function VerifyRegistrationPage() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(

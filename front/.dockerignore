@@ -6,8 +6,8 @@ npm-debug.log
 dist
 
 # environment
-.env
-.env.local
+# .env
+# .env.local
 
 # system
 .DS_Store

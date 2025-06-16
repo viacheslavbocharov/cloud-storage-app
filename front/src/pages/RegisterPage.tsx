@@ -135,14 +135,10 @@ import * as Yup from 'yup';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card';
+import { Button } from '@/components/ui/login-01-button';
+import { Input } from '@/components/ui/login-01-input';
+import { Label } from '@/components/ui/login-01-label';
+import { Card, CardContent, CardHeader } from '@/components/ui/login-01-card';
 
 const RegisterSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),

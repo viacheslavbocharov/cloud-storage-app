@@ -1,11 +1,11 @@
-import * as React from "react"
-import { ChevronRight, File, Folder } from "lucide-react"
+import * as React from 'react';
+import { ChevronRight, File, Folder } from 'lucide-react';
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from '@/components/ui/sidebar-11-collapsible';
 import {
   Sidebar,
   SidebarContent,
@@ -18,72 +18,72 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarRail,
-} from "@/components/ui/sidebar"
+  SidebarHeader,
+  SidebarFooter,
+} from '@/components/ui/sidebar-11-sidebar';
+import { CreateDropdown } from '../components/create-dropdown';
+import { SearchInput } from '../components/search-input';
+import { BinButton } from '../components/bin';
+import { AccountToolbar } from '../components/account-toolbar';
 
 // This is sample data.
 const data = {
   changes: [
     {
-      file: "README.md",
-      state: "M",
+      file: 'README.md',
+      state: 'M',
     },
     {
-      file: "api/hello/route.ts",
-      state: "U",
+      file: 'api/hello/route.ts',
+      state: 'U',
     },
     {
-      file: "app/layout.tsx",
-      state: "M",
+      file: 'app/layout.tsx',
+      state: 'M',
     },
   ],
   tree: [
     [
-      "app",
+      'app',
       [
-        "api",
-        ["hello", ["route.ts"]],
-        "page.tsx",
-        "layout.tsx",
-        ["blog", ["page.tsx"]],
+        'api',
+        ['hello', ['route.ts']],
+        'page.tsx',
+        'layout.tsx',
+        ['blog', ['page.tsx']],
       ],
     ],
     [
-      "components",
-      ["ui", "button.tsx", "card.tsx"],
-      "header.tsx",
-      "footer.tsx",
+      'components',
+      ['ui', 'button.tsx', 'card.tsx'],
+      'header.tsx',
+      'footer.tsx',
     ],
-    ["lib", ["util.ts"]],
-    ["public", "favicon.ico", "vercel.svg"],
-    ".eslintrc.json",
-    ".gitignore",
-    "next.config.js",
-    "tailwind.config.js",
-    "package.json",
-    "README.md",
+    ['lib', ['util.ts']],
+    ['public', 'favicon.ico', 'vercel.svg'],
+    '.eslintrc.json',
+    '.gitignore',
+    'next.config.js',
+    'tailwind.config.js',
+    'package.json',
+    'README.md',
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
-      <SidebarContent>
+      <SidebarHeader>
+        <AccountToolbar />
+        {/* <SidebarGroup></SidebarGroup> */}
+
         <SidebarGroup>
-          <SidebarGroupLabel>Changes</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {data.changes.map((item, index) => (
-                <SidebarMenuItem key={index}>
-                  <SidebarMenuButton>
-                    <File />
-                    {item.file}
-                  </SidebarMenuButton>
-                  <SidebarMenuBadge>{item.state}</SidebarMenuBadge>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <CreateDropdown />
+          <SearchInput />
         </SidebarGroup>
+      </SidebarHeader>
+
+      <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Files</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -95,31 +95,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarGroup>
+          <BinButton />
+        </SidebarGroup>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
 
 function Tree({ item }: { item: string | any[] }) {
-  const [name, ...items] = Array.isArray(item) ? item : [item]
+  const [name, ...items] = Array.isArray(item) ? item : [item];
 
   if (!items.length) {
     return (
       <SidebarMenuButton
-        isActive={name === "button.tsx"}
+        isActive={name === 'button.tsx'}
         className="data-[active=true]:bg-transparent"
       >
         <File />
         {name}
       </SidebarMenuButton>
-    )
+    );
   }
 
   return (
     <SidebarMenuItem>
       <Collapsible
         className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
-        defaultOpen={name === "components" || name === "ui"}
+        defaultOpen={name === 'components' || name === 'ui'}
       >
         <CollapsibleTrigger asChild>
           <SidebarMenuButton>
@@ -137,5 +143,5 @@ function Tree({ item }: { item: string | any[] }) {
         </CollapsibleContent>
       </Collapsible>
     </SidebarMenuItem>
-  )
+  );
 }

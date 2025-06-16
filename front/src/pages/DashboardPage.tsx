@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from '@/components/sidebar-11';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,16 +6,17 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from '@/components/ui/sidebar-11-breadcrumb';
+import { Separator } from '@/components/ui/sidebar-11-separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar-11-sidebar';
 
 export default function DashboardPage() {
   return (
+    // <div>Dashboard</div>
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
@@ -51,5 +52,5 @@ export default function DashboardPage() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
