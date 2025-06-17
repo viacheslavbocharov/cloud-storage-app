@@ -19,13 +19,15 @@ export type FolderType = {
 };
 
 type FileManagerState = {
-  currentPath: string[]; // текущий путь в виде массива id
-  selectedIds: string[]; // выделенные id
-  searchQuery: string;   // строка поиска
+  currentPath: string[];
+  selectedIds: string[];
+  searchQuery: string;
   viewingMode: 'normal' | 'trash';
   draggingId: string | null;
-  folders: FolderType[];
-  files: FileType[];
+
+  foldersByParentId: Record<string, FolderType[]>;
+  filesByFolderId: Record<string, FileType[]>;
+  loadedFolders: string[]; // folderId[] + 'root'
 };
 
 const initialState: FileManagerState = {
@@ -34,17 +36,36 @@ const initialState: FileManagerState = {
   searchQuery: '',
   viewingMode: 'normal',
   draggingId: null,
-  folders: [],
-  files: [],
+
+  foldersByParentId: {},
+  filesByFolderId: {},
+  loadedFolders: [],
 };
 
 const fileManagerSlice = createSlice({
   name: 'fileManager',
   initialState,
   reducers: {
+    setFolderContents: (
+      state,
+      action: PayloadAction<{
+        parentFolderId: string | null;
+        folders: FolderType[];
+        files: FileType[];
+      }>
+    ) => {
+      const key = action.payload.parentFolderId ?? 'root';
+      state.foldersByParentId[key] = action.payload.folders;
+      state.filesByFolderId[key] = action.payload.files;
+
+      if (!state.loadedFolders.includes(key)) {
+        state.loadedFolders.push(key);
+      }
+    },
+
     setCurrentPath(state, action: PayloadAction<string[]>) {
       state.currentPath = action.payload;
-      state.selectedIds = []; // сброс выделения
+      state.selectedIds = [];
     },
     setSelectedIds(state, action: PayloadAction<string[]>) {
       state.selectedIds = action.payload;
@@ -58,37 +79,44 @@ const fileManagerSlice = createSlice({
     setDraggingId(state, action: PayloadAction<string | null>) {
       state.draggingId = action.payload;
     },
-    setFoldersAndFiles(
-      state,
-      action: PayloadAction<{ folders: FolderType[]; files: FileType[] }>
-    ) {
-      state.folders = action.payload.folders;
-      state.files = action.payload.files;
-    },
+
     deleteItem(state, action: PayloadAction<string>) {
       const id = action.payload;
-      const file = state.files.find(f => f._id === id);
-      const folder = state.folders.find(f => f._id === id);
-      if (file) file.isDeleted = true;
-      if (folder) folder.isDeleted = true;
+
+      Object.values(state.filesByFolderId).forEach((fileList) => {
+        const file = fileList.find((f) => f._id === id);
+        if (file) file.isDeleted = true;
+      });
+
+      Object.values(state.foldersByParentId).forEach((folderList) => {
+        const folder = folderList.find((f) => f._id === id);
+        if (folder) folder.isDeleted = true;
+      });
     },
+
     restoreItem(state, action: PayloadAction<string>) {
       const id = action.payload;
-      const file = state.files.find(f => f._id === id);
-      const folder = state.folders.find(f => f._id === id);
-      if (file) file.isDeleted = false;
-      if (folder) folder.isDeleted = false;
+
+      Object.values(state.filesByFolderId).forEach((fileList) => {
+        const file = fileList.find((f) => f._id === id);
+        if (file) file.isDeleted = false;
+      });
+
+      Object.values(state.foldersByParentId).forEach((folderList) => {
+        const folder = folderList.find((f) => f._id === id);
+        if (folder) folder.isDeleted = false;
+      });
     },
   },
 });
 
 export const {
+  setFolderContents,
   setCurrentPath,
   setSelectedIds,
   setSearchQuery,
   setViewingMode,
   setDraggingId,
-  setFoldersAndFiles,
   deleteItem,
   restoreItem,
 } = fileManagerSlice.actions;
