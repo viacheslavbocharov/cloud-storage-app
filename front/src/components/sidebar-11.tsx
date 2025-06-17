@@ -28,20 +28,6 @@ import { AccountToolbar } from '../components/account-toolbar';
 
 // This is sample data.
 const data = {
-  changes: [
-    {
-      file: 'README.md',
-      state: 'M',
-    },
-    {
-      file: 'api/hello/route.ts',
-      state: 'U',
-    },
-    {
-      file: 'app/layout.tsx',
-      state: 'M',
-    },
-  ],
   tree: [
     [
       'app',

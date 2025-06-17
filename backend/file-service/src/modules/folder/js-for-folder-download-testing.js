@@ -25,7 +25,7 @@ document.getElementById('folderInput').addEventListener('change', async (e) => {
     method: 'POST',
     headers: {
       Authorization:
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZpYWNoZXNsYXZib2NoYXJvdkBnbWFpbC5jb20iLCJzdWIiOiI2ODQxOTcwMmRmYTZlNjRjYmVhMzAwZDkiLCJpYXQiOjE3NDkxNTIwMzMsImV4cCI6MTc0OTE1MjkzM30.wMLW0T1f8hXIZh1lbWbjGQ1DzdGi_E8UlRMZyQdeh8g',
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZpYWNoZXNsYXZib2NoYXJvdkBnbWFpbC5jb20iLCJzdWIiOiI2ODQ3NTYwMDExOWY0NDk3YWYxZWY0N2YiLCJpYXQiOjE3NTAxMTE2ODgsImV4cCI6MTc1MDE5ODA4OH0.jTHWtF2mJIvQ-lCjHTjl0DkTLHGDFVzVxplHhaeI4h4',
     },
     body: formData,
   });
