@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState } from 'react';
 import { ChevronRight, File, Folder } from 'lucide-react';
 
 import {
@@ -31,13 +32,21 @@ import { setCurrentPath, setFolderContents } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // const dispatch = useDispatch<AppDispatch>();
-  // const currentPath = useSelector((state: RootState) => state.fileManager.currentPath);
-  const foldersByParentId = useSelector((state: RootState) => state.fileManager.foldersByParentId);
-  const filesByFolderId = useSelector((state: RootState) => state.fileManager.filesByFolderId);
+  const dispatch = useDispatch<AppDispatch>();
+  const currentPath = useSelector(
+    (state: RootState) => state.fileManager.currentPath,
+  );
+  const foldersByParentId = useSelector(
+    (state: RootState) => state.fileManager.foldersByParentId,
+  );
+  const filesByFolderId = useSelector(
+    (state: RootState) => state.fileManager.filesByFolderId,
+  );
 
   const rootFolders = foldersByParentId['root'] || []; //foldersByParentId — это объект, где ключ — parentFolderId, а значение — массив вложенных папок;
   const rootFiles = filesByFolderId['root'] || []; //filesByFolderId — это объект, где ключ — folderId, а значение — массив файлов в этой папке.
+
+  const [rootOpen, setRootOpen] = useState(true);
 
   return (
     <Sidebar {...props}>
@@ -49,13 +58,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarHeader>
 
-      <SidebarContent>
+      {/* <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Files</SidebarGroupLabel>
-          
+          <SidebarGroupLabel>My drive</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {rootFolders.map((folder) => (
+               {rootFolders.map((folder) => (
                 <FolderTree key={folder._id} folder={folder} />
               ))}
               {rootFiles.map((file) => (
@@ -67,6 +75,52 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {file.originalName}
                 </SidebarMenuButton>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent> */}
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {/* ✅ My Drive как collapsible */}
+              <SidebarMenuItem>
+                <Collapsible
+                  open={rootOpen}
+                  onOpenChange={(open) => setRootOpen(open)}
+                  className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
+                >
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      isActive={currentPath.length === 0}
+                      onClick={() => dispatch(setCurrentPath([]))}
+                      className="font-semibold"
+                    >
+                      <ChevronRight className="w-4 h-4 mr-1 transition-transform" />
+                      <Folder className="w-4 h-4 mr-1" />
+                      My Drive
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {rootFolders.map((folder) => (
+                        <FolderTree key={folder._id} folder={folder} />
+                      ))}
+                      {rootFiles.map((file) => (
+                        <SidebarMenuButton
+                          key={file._id}
+                          className="pl-6 text-sm text-muted-foreground hover:text-primary"
+                        >
+                          <File className="w-4 h-4 mr-1" />
+                          {file.originalName}
+                        </SidebarMenuButton>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -91,22 +145,35 @@ type FolderTreeProps = {
 
 function FolderTree({ folder }: FolderTreeProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const foldersByParentId = useSelector((state: RootState) => state.fileManager.foldersByParentId);
-  const filesByFolderId = useSelector((state: RootState) => state.fileManager.filesByFolderId);
-  const loaded = useSelector((state: RootState) => state.fileManager.loadedFolders.includes(folder._id));
+  const foldersByParentId = useSelector(
+    (state: RootState) => state.fileManager.foldersByParentId,
+  );
+  const filesByFolderId = useSelector(
+    (state: RootState) => state.fileManager.filesByFolderId,
+  );
+  const loaded = useSelector((state: RootState) =>
+    state.fileManager.loadedFolders.includes(folder._id),
+  );
 
   const childrenFolder = foldersByParentId[folder._id] || [];
   const childrenFiles = filesByFolderId[folder._id] || [];
 
+  const currentPath = useSelector(
+    (state: RootState) => state.fileManager.currentPath,
+  );
+  const isActive = currentPath[currentPath.length - 1] === folder._id;
+
   const handleLoad = async () => {
     if (!loaded) {
-      const res = await api.get('/folders/contents', { params: { folderId: folder._id } });
+      const res = await api.get('/folders/contents', {
+        params: { folderId: folder._id },
+      });
       dispatch(
         setFolderContents({
           parentFolderId: folder._id,
           folders: res.data.folders,
           files: res.data.files,
-        })
+        }),
       );
     }
   };
@@ -123,7 +190,11 @@ function FolderTree({ folder }: FolderTreeProps) {
         className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
       >
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton onClick={handleClick} className="group">
+          <SidebarMenuButton
+            isActive={isActive}
+            onClick={handleClick}
+            className="group data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+          >
             <ChevronRight className="w-4 h-4 mr-1 transition-transform group-data-[state=open]:rotate-90" />
             <Folder className="w-4 h-4 mr-1" />
             {folder.name}
