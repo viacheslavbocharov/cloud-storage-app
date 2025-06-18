@@ -23,8 +23,8 @@ import { Input } from '@/components/ui/input';
 
 import { FolderPlus, Upload, FolderUp, Plus } from 'lucide-react';
 
-import { FileUploadDialog } from '@/components/fileUploadDialog';
-import { FolderUploadDialog } from '@/components/folderUploadDialog';
+import { FileUploadDialog } from '@/components/FileUploadDialog';
+import { FolderUploadDialog } from '@/components/FolderUploadDialog';
 
 export function CreateDropdown() {
   const dispatch = useDispatch<AppDispatch>();

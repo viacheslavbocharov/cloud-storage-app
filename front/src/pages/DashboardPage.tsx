@@ -4,7 +4,7 @@ import { AppDispatch, RootState } from '@/store';
 import { setFolderContents } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 
-import { AppSidebar } from '@/components/sidebar-11';
+import { AppSidebar } from '@/components/Sidebar-11';
 import {
   Breadcrumb,
   BreadcrumbItem,

@@ -21,11 +21,12 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from '@/components/ui/sidebar-11-sidebar';
-import { CreateDropdown } from '../components/create-dropdown';
-import { SearchInput } from '../components/search-input';
-import { BinButton } from '../components/bin';
-import { AccountToolbar } from '../components/account-toolbar';
-import { OverflowTooltip } from '../components/overflowTooltip.tsx';
+import { CreateDropdown } from './CreateDropdown.tsx';
+import { SearchInput } from './SearchInput.tsx';
+import { BinButton } from './Bin.tsx';
+import { AccountToolbar } from './AccountToolbar.tsx';
+import { OverflowTooltip } from './OverflowTooltip.tsx';
+import { FileContextMenu } from './FileContextMenu.tsx';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
@@ -113,12 +114,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         //   </div>
                         // </SidebarMenuButton>
 
-                        <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
-                          <File className="w-4 h-4 mr-1 shrink-0" />
-                          <OverflowTooltip className="w-[180px]">
-                            {file.originalName}
-                          </OverflowTooltip>
-                        </SidebarMenuButton>
+                        <FileContextMenu item={file}>
+                          {/* worked part */}
+                          <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
+                            <File className="w-4 h-4 mr-1 shrink-0" />
+                            <OverflowTooltip className="w-[180px]">
+                              {file.originalName}
+                            </OverflowTooltip>
+                          </SidebarMenuButton>
+                        </FileContextMenu>
                       ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
@@ -247,12 +251,15 @@ function FolderTree({ folder }: FolderTreeProps) {
               //   </div>
               // </SidebarMenuButton>
 
-              <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
-                <File className="w-4 h-4 mr-1 shrink-0" />
-                <OverflowTooltip className="w-[180px]">
-                  {childFile.originalName}
-                </OverflowTooltip>
-              </SidebarMenuButton>
+              <FileContextMenu item={childFile}>
+                {/* worked part */}
+                <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
+                  <File className="w-4 h-4 mr-1 shrink-0" />
+                  <OverflowTooltip className="w-[180px]">
+                    {childFile.originalName}
+                  </OverflowTooltip>
+                </SidebarMenuButton>
+              </FileContextMenu>
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>

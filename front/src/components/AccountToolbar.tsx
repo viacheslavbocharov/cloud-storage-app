@@ -84,7 +84,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { LogOut, Settings } from 'lucide-react';
-import { ModeToggle } from '@/components/mode-toggle';
+import { ModeToggle } from '@/components/ModeToggle';
 
 export function AccountToolbar() {
   return (
