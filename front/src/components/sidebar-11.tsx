@@ -25,6 +25,7 @@ import { CreateDropdown } from '../components/create-dropdown';
 import { SearchInput } from '../components/search-input';
 import { BinButton } from '../components/bin';
 import { AccountToolbar } from '../components/account-toolbar';
+import { OverflowTooltip } from '../components/overflowTooltip.tsx';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
@@ -86,12 +87,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <FolderTree key={folder._id} folder={folder} />
                       ))}
                       {rootFiles.map((file) => (
-                        <SidebarMenuButton
-                          key={file._id}
-                          className="pl-6 text-sm text-muted-foreground hover:text-primary"
-                        >
-                          <File className="w-4 h-4 mr-1" />
-                          {file.originalName}
+                        //ORIGIN
+                        // <SidebarMenuButton
+                        //   key={file._id}
+                        //   className="pl-6 text-sm text-muted-foreground hover:text-primary"
+                        // >
+                        //   <File className="w-4 h-4 mr-1" />
+                        //   {file.originalName}
+                        // </SidebarMenuButton>
+
+                        // <SidebarMenuButton
+                        //   key={file._id}
+                        //   className="pl-6 text-sm text-muted-foreground hover:text-primary relative group/file" // 🔄 уникальный group
+                        //   style={{ overflow: 'visible' }}
+                        // >
+                        //   <File className="w-4 h-4 mr-1 shrink-0" />
+
+                        //   <div className="truncate w-[180px]">
+                        //     {file.originalName}
+                        //   </div>
+
+                        //   {/* Показывать только при наведении на этот file */}
+                        //   <div className="absolute top-full left-0 mt-1 bg-white text-primary text-sm shadow-lg px-2 py-1 rounded z-50 max-w-xs hidden group-hover/file:block whitespace-normal">
+                        //     {file.originalName}
+                        //   </div>
+                        // </SidebarMenuButton>
+
+                        <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
+                          <File className="w-4 h-4 mr-1 shrink-0" />
+                          <OverflowTooltip className="w-[180px]">
+                            {file.originalName}
+                          </OverflowTooltip>
                         </SidebarMenuButton>
                       ))}
                     </SidebarMenuSub>
@@ -167,7 +193,7 @@ function FolderTree({ folder }: FolderTreeProps) {
         className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
       >
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton
+          {/* <SidebarMenuButton
             isActive={isActive}
             onClick={handleClick}
             className="group data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
@@ -175,6 +201,18 @@ function FolderTree({ folder }: FolderTreeProps) {
             <ChevronRight className="w-4 h-4 mr-1 transition-transform group-data-[state=open]:rotate-90" />
             <Folder className="w-4 h-4 mr-1" />
             {folder.name}
+          </SidebarMenuButton> */}
+
+          <SidebarMenuButton
+            isActive={isActive}
+            onClick={handleClick}
+            className="group data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+          >
+            <ChevronRight className="w-4 h-4 mr-1 transition-transform group-data-[state=open]:rotate-90" />
+            <Folder className="w-4 h-4 mr-1 shrink-0" />
+            <OverflowTooltip className="w-[180px]">
+              {folder.name}
+            </OverflowTooltip>
           </SidebarMenuButton>
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -183,12 +221,37 @@ function FolderTree({ folder }: FolderTreeProps) {
               <FolderTree key={childFolder._id} folder={childFolder} />
             ))}
             {childrenFiles.map((childFile) => (
-              <SidebarMenuButton
-                key={childFile._id}
-                className="pl-6 text-sm text-muted-foreground hover:text-primary"
-              >
-                <File className="w-4 h-4 mr-1" />
-                {childFile.originalName}
+              //ORIGIN
+              // <SidebarMenuButton
+              //   key={childFile._id}
+              //   className="pl-6 text-sm text-muted-foreground hover:text-primary"
+              // >
+              //   <File className="w-4 h-4 mr-1" />
+              //   {childFile.originalName}
+              // </SidebarMenuButton>
+
+              // <SidebarMenuButton
+              //   key={childFile._id}
+              //   className="pl-6 text-sm text-muted-foreground hover:text-primary relative group/file" // 🔄 уникальный group
+              //   style={{ overflow: 'visible' }}
+              // >
+              //   <File className="w-4 h-4 mr-1 shrink-0" />
+
+              //   <div className="truncate w-[180px]">
+              //     {childFile.originalName}
+              //   </div>
+
+              //   {/* Показывать только при наведении на этот file */}
+              //   <div className="absolute top-full left-0 mt-1 bg-white text-primary text-sm shadow-lg px-2 py-1 rounded z-50 max-w-xs hidden group-hover/file:block whitespace-normal">
+              //     {childFile.originalName}
+              //   </div>
+              // </SidebarMenuButton>
+
+              <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
+                <File className="w-4 h-4 mr-1 shrink-0" />
+                <OverflowTooltip className="w-[180px]">
+                  {childFile.originalName}
+                </OverflowTooltip>
               </SidebarMenuButton>
             ))}
           </SidebarMenuSub>

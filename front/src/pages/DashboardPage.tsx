@@ -22,7 +22,9 @@ import {
 
 export default function DashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { loadedFolders } = useSelector((state: RootState) => state.fileManager);
+  const { loadedFolders } = useSelector(
+    (state: RootState) => state.fileManager,
+  );
 
   useEffect(() => {
     const loadRootContents = async () => {
@@ -36,7 +38,7 @@ export default function DashboardPage() {
             parentFolderId: null,
             folders: res.data.folders,
             files: res.data.files,
-          })
+          }),
         );
       } catch (err) {
         console.error('Ошибка при загрузке корневого contents:', err);

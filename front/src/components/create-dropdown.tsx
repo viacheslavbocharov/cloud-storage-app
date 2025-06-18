@@ -23,17 +23,21 @@ import { Input } from '@/components/ui/input';
 
 import { FolderPlus, Upload, FolderUp, Plus } from 'lucide-react';
 
-import { FileUploadDialog } from "@/components/fileUploadDialog";
+import { FileUploadDialog } from '@/components/fileUploadDialog';
+import { FolderUploadDialog } from '@/components/folderUploadDialog';
 
 export function CreateDropdown() {
   const dispatch = useDispatch<AppDispatch>();
-  const currentPath = useSelector((state: RootState) => state.fileManager.currentPath);
+  const currentPath = useSelector(
+    (state: RootState) => state.fileManager.currentPath,
+  );
   const parentFolderId = currentPath[currentPath.length - 1] ?? null;
 
   const [open, setOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
 
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [showFolderUploadDialog, setShowFolderUploadDialog] = useState(false);
 
   const handleCreateFolder = async () => {
     if (!folderName.trim()) return;
@@ -54,7 +58,7 @@ export function CreateDropdown() {
           parentFolderId,
           folders: res.data.folders,
           files: res.data.files,
-        })
+        }),
       );
 
       setFolderName('');
@@ -76,7 +80,12 @@ export function CreateDropdown() {
             New
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" side="bottom" align="start" sideOffset={4}>
+        <DropdownMenuContent
+          className="w-56"
+          side="bottom"
+          align="start"
+          sideOffset={4}
+        >
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <FolderPlus className="mr-2 h-4 w-4" />
             <span>New folder</span>
@@ -85,14 +94,22 @@ export function CreateDropdown() {
             <Upload className="mr-2 h-4 w-4" />
             <span>Files upload</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowFolderUploadDialog(true)}>
             <FolderUp className="mr-2 h-4 w-4" />
             <span>Folder upload</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <FileUploadDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} />
+      <FileUploadDialog
+        open={showUploadDialog}
+        onOpenChange={setShowUploadDialog}
+      />
+
+      <FolderUploadDialog
+        open={showFolderUploadDialog}
+        onOpenChange={setShowFolderUploadDialog}
+      />
 
       {/* Dialog Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
