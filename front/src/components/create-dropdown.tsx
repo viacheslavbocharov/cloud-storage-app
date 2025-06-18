@@ -1,80 +1,3 @@
-// import { Button } from "@/components/ui/button"
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu"
-
-// import { FolderPlus, Upload, FolderUp, Plus } from "lucide-react"
-
-// import { useDispatch, useSelector } from 'react-redux';
-// import { RootState, AppDispatch } from '@/store';
-// import api from '@/utils/axios';
-// import { setFolderContents } from '@/store/fileManagerSlice';
-
-
-// export function CreateDropdown() {
-
-//   const dispatch = useDispatch<AppDispatch>();
-//   const currentPath = useSelector((state: RootState) => state.fileManager.currentPath);
-
-//   const handleCreateFolder = async () => {
-//     const folderName = prompt('Enter folder name:');
-//     if (!folderName) return;
-
-//     const parentFolderId = currentPath[currentPath.length - 1] ?? null;
-
-//     try {
-//       await api.post('/folders', {
-//         name: folderName,
-//         parentFolderId,
-//       });
-
-//       // после создания перезапрашиваем содержимое
-//       const res = await api.get('/folders/contents', {
-//         params: { folderId: parentFolderId },
-//       });
-
-//       dispatch(
-//         setFolderContents({
-//           parentFolderId,
-//           folders: res.data.folders,
-//           files: res.data.files,
-//         })
-//       );
-//     } catch (err) {
-//       console.error('❌ Failed to create folder:', err);
-//     }
-//   };
-
-//   return (
-//     <DropdownMenu>
-//       <DropdownMenuTrigger asChild>
-//         <Button className="w-1/2 rounded-lg mb-[10px] pl-[3px] py-6 text-base font-medium shadow-sm cursor-pointer" variant="outline">
-//           <Plus className="mr-2 h-4 w-4" />
-//           New
-//         </Button>
-//       </DropdownMenuTrigger>
-//       <DropdownMenuContent className="w-56" side="bottom" align="start" sideOffset={4}>
-//         <DropdownMenuItem onClick={handleCreateFolder}>
-//           <FolderPlus className="mr-2 h-4 w-4" />
-//           <span>New folder</span>
-//         </DropdownMenuItem>
-//         <DropdownMenuItem>
-//           <Upload className="mr-2 h-4 w-4" />
-//           <span>File upload</span>
-//         </DropdownMenuItem>
-//         <DropdownMenuItem>
-//           <FolderUp className="mr-2 h-4 w-4" />
-//           <span>Folder upload</span>
-//         </DropdownMenuItem>
-//       </DropdownMenuContent>
-//     </DropdownMenu>
-//   )
-// }
-
-
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
@@ -100,6 +23,8 @@ import { Input } from '@/components/ui/input';
 
 import { FolderPlus, Upload, FolderUp, Plus } from 'lucide-react';
 
+import { FileUploadDialog } from "@/components/fileUploadDialog";
+
 export function CreateDropdown() {
   const dispatch = useDispatch<AppDispatch>();
   const currentPath = useSelector((state: RootState) => state.fileManager.currentPath);
@@ -107,6 +32,8 @@ export function CreateDropdown() {
 
   const [open, setOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
+
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
 
   const handleCreateFolder = async () => {
     if (!folderName.trim()) return;
@@ -154,9 +81,9 @@ export function CreateDropdown() {
             <FolderPlus className="mr-2 h-4 w-4" />
             <span>New folder</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowUploadDialog(true)}>
             <Upload className="mr-2 h-4 w-4" />
-            <span>File upload</span>
+            <span>Files upload</span>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <FolderUp className="mr-2 h-4 w-4" />
@@ -164,6 +91,8 @@ export function CreateDropdown() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <FileUploadDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} />
 
       {/* Dialog Modal */}
       <Dialog open={open} onOpenChange={setOpen}>

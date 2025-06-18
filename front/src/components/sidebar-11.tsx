@@ -57,29 +57,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SearchInput />
         </SidebarGroup>
       </SidebarHeader>
-
-      {/* <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>My drive</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-               {rootFolders.map((folder) => (
-                <FolderTree key={folder._id} folder={folder} />
-              ))}
-              {rootFiles.map((file) => (
-                <SidebarMenuButton
-                  key={file._id}
-                  className="pl-6 text-sm text-muted-foreground hover:text-primary"
-                >
-                  <File className="w-4 h-4 mr-1" />
-                  {file.originalName}
-                </SidebarMenuButton>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent> */}
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
