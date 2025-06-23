@@ -113,44 +113,14 @@ import { Download, Edit2, Share2, Trash2, Link2, Lock } from 'lucide-react';
 
 import type { FileType } from '@/store/fileManagerSlice';
 import type { FolderType } from '@/store/fileManagerSlice';
+import { callFileDownload } from '@/utils/callFileDownload';
 
+import { useDispatch } from 'react-redux';
+import { openRenameModal } from '@/store/fileManagerSlice';
 
-// type ContextMenuProps = {
-//   children: ReactNode;
-//   item: {
-//     _id: string;
-//     name?: string;
-//     originalName?: string;
-//     sharedToken: string | null;
-//   };
-//   type: 'file' | 'folder';
-// };
-// type FileItem = {
-//   _id: string;
-//   originalName: string;
-//   sharedToken: string | null;
-  
-// };
-
-// type FolderItem = {
-//   _id: string;
-//   name: string;
-//   sharedToken: string | null;
-// };
-
-// type ContextMenuProps = {
-//   children: ReactNode;
-//   item: FileItem;
-//   type: 'file';
-// } | {
-//   children: ReactNode;
-//   item: FolderItem;
-//   type: 'folder';
-// };
 type ContextMenuProps =
   | { item: FileType; type: 'file'; children: ReactNode }
   | { item: FolderType; type: 'folder'; children: ReactNode };
-
 
 export function ContextMenu({ children, item, type }: ContextMenuProps) {
   const [open, setOpen] = useState(false);
@@ -174,23 +144,38 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
     setOpen(true);
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (type === 'file') {
-      console.log(`[File] Downloading: ${item.originalName}`);
-      // e.g. callFileDownload(item.id)
+      const url = `/api/files/${item._id}/download`;
+      callFileDownload(url, item.originalName);
     } else {
       console.log(`[Folder] Downloading: ${item.name}`);
       // e.g. callFolderDownload(item.id)
     }
   };
 
+  const dispatch = useDispatch();
   const handleRename = () => {
     if (type === 'file') {
-      console.log(`[File] Rename requested: ${item.originalName}`);
-      // openRenameFileModal(item)
+      // console.log(`[File] Rename requested: ${item.originalName}`);
+      // shareFile(item)
+      dispatch(
+        openRenameModal({
+          id: item._id,
+          originalName: item.originalName,
+          type,
+        }),
+      );
     } else {
-      console.log(`[Folder] Rename requested: ${item.name}`);
+      // console.log(`[Folder] Rename requested: ${item.name}`);
       // openRenameFolderModal(item)
+      dispatch(
+        openRenameModal({
+          id: item._id,
+          originalName: item.name,
+          type,
+        }),
+      );
     }
   };
 
@@ -236,9 +221,7 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
 
   return (
     <>
-      <div onContextMenu={handleContextMenu}>
-        {children}
-      </div>
+      <div onContextMenu={handleContextMenu}>{children}</div>
 
       {open && (
         <DropdownMenu open={open} onOpenChange={setOpen}>

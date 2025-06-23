@@ -37,6 +37,7 @@ import {
   setFolderContents,
 } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
+import { RenameModal } from './RenameModal.tsx';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const dispatch = useDispatch<AppDispatch>();
@@ -56,73 +57,77 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [rootOpen, setRootOpen] = useState(true);
 
   return (
-    <Sidebar {...props}>
-      <SidebarHeader>
-        <AccountToolbar />
-        <SidebarGroup>
-          <CreateDropdown />
-          <SearchInput />
-        </SidebarGroup>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* ✅ My Drive как collapsible */}
-              <SidebarMenuItem>
-                <Collapsible
-                  open={rootOpen}
-                  onOpenChange={(open) => setRootOpen(open)}
-                  className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
-                >
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      isActive={currentPath.length === 0}
-                      onClick={() => dispatch(setCurrentPath([]))}
-                      className="font-semibold"
-                    >
-                      <ChevronRight className="w-4 h-4 mr-1 transition-transform" />
-                      <Folder className="w-4 h-4 mr-1" />
-                      My Drive
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
+    <>
+      <Sidebar {...props}>
+        <SidebarHeader>
+          <AccountToolbar />
+          <SidebarGroup>
+            <CreateDropdown />
+            <SearchInput />
+          </SidebarGroup>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {/* ✅ My Drive как collapsible */}
+                <SidebarMenuItem>
+                  <Collapsible
+                    open={rootOpen}
+                    onOpenChange={(open) => setRootOpen(open)}
+                    className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={currentPath.length === 0}
+                        onClick={() => dispatch(setCurrentPath([]))}
+                        className="font-semibold"
+                      >
+                        <ChevronRight className="w-4 h-4 mr-1 transition-transform" />
+                        <Folder className="w-4 h-4 mr-1" />
+                        My Drive
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
 
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {rootFolders.map((folder) => (
-                        <FolderTree key={folder._id} folder={folder} />
-                      ))}
-                      {rootFiles.map((file) => (
-                        <ContextMenu
-                          item={file as FileType}
-                          type="file"
-                          key={file._id}
-                        >
-                          {/* worked part */}
-                          <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
-                            <File className="w-4 h-4 mr-1 shrink-0" />
-                            <OverflowTooltip className="w-[180px]">
-                              {file.originalName}
-                            </OverflowTooltip>
-                          </SidebarMenuButton>
-                        </ContextMenu>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {rootFolders.map((folder) => (
+                          <FolderTree key={folder._id} folder={folder} />
+                        ))}
+                        {rootFiles.map((file) => (
+                          <ContextMenu
+                            item={file as FileType}
+                            type="file"
+                            key={file._id}
+                          >
+                            {/* worked part */}
+                            <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
+                              <File className="w-4 h-4 mr-1 shrink-0" />
+                              <OverflowTooltip className="w-[180px]">
+                                {file.originalName}
+                              </OverflowTooltip>
+                            </SidebarMenuButton>
+                          </ContextMenu>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarGroup>
-          <BinButton />
-        </SidebarGroup>
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+        <SidebarFooter>
+          <SidebarGroup>
+            <BinButton />
+          </SidebarGroup>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <RenameModal />
+    </>
   );
 }
 
@@ -172,6 +177,7 @@ function FolderTree({ folder }: FolderTreeProps) {
     dispatch(setCurrentPath([folder._id]));
   };
 
+
   return (
     <SidebarMenuItem>
       <Collapsible
@@ -179,7 +185,11 @@ function FolderTree({ folder }: FolderTreeProps) {
         onOpenChange={(open) => open && handleLoad()}
         className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
       >
-        <ContextMenu item={folder as FolderType} type="folder" key={folder._id}>
+        <ContextMenu
+          item={folder as FolderType}
+          type="folder"
+          key={folder._id}
+        >
           <CollapsibleTrigger asChild>
             <SidebarMenuButton
               isActive={isActive}
