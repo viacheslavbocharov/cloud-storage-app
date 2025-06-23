@@ -147,6 +147,7 @@ export class FileService {
       path: pathIds,
       key,
       access: 'private',
+      sharedToken: null,
     });
 
     return newFile.save();

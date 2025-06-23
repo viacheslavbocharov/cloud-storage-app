@@ -56,7 +56,7 @@ export class FolderService {
   //   return folder.save();
   // }
 
-  async create(dto: CreateFolderDto, ownerId: string, isSystem = false) {
+  async create(dto: CreateFolderDto, ownerId: string, isSystem = false, sharedToken = null) {
     const existing = await this.folderModel.findOne({
       name: dto.name,
       parentFolderId: dto.parentFolderId ?? null,
@@ -85,6 +85,7 @@ export class FolderService {
       path,
       key,
       isSystem,
+      sharedToken,
     });
 
     return folder.save();

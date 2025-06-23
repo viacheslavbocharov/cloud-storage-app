@@ -29,8 +29,8 @@ export class File {
   @Prop({ default: 'private' })
   access: 'private' | 'public' | 'link';
 
-  @Prop()
-  sharedToken?: string;
+  @Prop({ default: null })
+  sharedToken: string | null;
 
   @Prop({ default: null })
   folderId: string | null;

@@ -8,6 +8,7 @@ export type FileType = {
   isDeleted: boolean;
   folderId: string | null;
   key: string;
+  sharedToken: string | null;
 };
 
 export type FolderType = {
@@ -16,6 +17,7 @@ export type FolderType = {
   isDeleted: boolean;
   path: string[];
   key: string;
+  sharedToken: string | null;
 };
 
 type FileManagerState = {

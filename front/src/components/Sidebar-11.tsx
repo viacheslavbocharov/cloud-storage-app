@@ -26,11 +26,16 @@ import { SearchInput } from './SearchInput.tsx';
 import { BinButton } from './Bin.tsx';
 import { AccountToolbar } from './AccountToolbar.tsx';
 import { OverflowTooltip } from './OverflowTooltip.tsx';
-import { FileContextMenu } from './FileContextMenu.tsx';
+import { ContextMenu } from './ContextMenu.tsx';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
-import { setCurrentPath, setFolderContents } from '@/store/fileManagerSlice';
+import {
+  FolderType,
+  FileType,
+  setCurrentPath,
+  setFolderContents,
+} from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -88,33 +93,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <FolderTree key={folder._id} folder={folder} />
                       ))}
                       {rootFiles.map((file) => (
-                        //ORIGIN
-                        // <SidebarMenuButton
-                        //   key={file._id}
-                        //   className="pl-6 text-sm text-muted-foreground hover:text-primary"
-                        // >
-                        //   <File className="w-4 h-4 mr-1" />
-                        //   {file.originalName}
-                        // </SidebarMenuButton>
-
-                        // <SidebarMenuButton
-                        //   key={file._id}
-                        //   className="pl-6 text-sm text-muted-foreground hover:text-primary relative group/file" // 🔄 уникальный group
-                        //   style={{ overflow: 'visible' }}
-                        // >
-                        //   <File className="w-4 h-4 mr-1 shrink-0" />
-
-                        //   <div className="truncate w-[180px]">
-                        //     {file.originalName}
-                        //   </div>
-
-                        //   {/* Показывать только при наведении на этот file */}
-                        //   <div className="absolute top-full left-0 mt-1 bg-white text-primary text-sm shadow-lg px-2 py-1 rounded z-50 max-w-xs hidden group-hover/file:block whitespace-normal">
-                        //     {file.originalName}
-                        //   </div>
-                        // </SidebarMenuButton>
-
-                        <FileContextMenu item={file}>
+                        <ContextMenu
+                          item={file as FileType}
+                          type="file"
+                          key={file._id}
+                        >
                           {/* worked part */}
                           <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
                             <File className="w-4 h-4 mr-1 shrink-0" />
@@ -122,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                               {file.originalName}
                             </OverflowTooltip>
                           </SidebarMenuButton>
-                        </FileContextMenu>
+                        </ContextMenu>
                       ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
@@ -196,62 +179,33 @@ function FolderTree({ folder }: FolderTreeProps) {
         onOpenChange={(open) => open && handleLoad()}
         className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
       >
-        <CollapsibleTrigger asChild>
-          {/* <SidebarMenuButton
-            isActive={isActive}
-            onClick={handleClick}
-            className="group data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
-          >
-            <ChevronRight className="w-4 h-4 mr-1 transition-transform group-data-[state=open]:rotate-90" />
-            <Folder className="w-4 h-4 mr-1" />
-            {folder.name}
-          </SidebarMenuButton> */}
+        <ContextMenu item={folder as FolderType} type="folder" key={folder._id}>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              isActive={isActive}
+              onClick={handleClick}
+              className="group data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+            >
+              <ChevronRight className="w-4 h-4 mr-1 transition-transform group-data-[state=open]:rotate-90" />
+              <Folder className="w-4 h-4 mr-1 shrink-0" />
+              <OverflowTooltip className="w-[180px]">
+                {folder.name}
+              </OverflowTooltip>
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+        </ContextMenu>
 
-          <SidebarMenuButton
-            isActive={isActive}
-            onClick={handleClick}
-            className="group data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
-          >
-            <ChevronRight className="w-4 h-4 mr-1 transition-transform group-data-[state=open]:rotate-90" />
-            <Folder className="w-4 h-4 mr-1 shrink-0" />
-            <OverflowTooltip className="w-[180px]">
-              {folder.name}
-            </OverflowTooltip>
-          </SidebarMenuButton>
-        </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub>
             {childrenFolder.map((childFolder) => (
               <FolderTree key={childFolder._id} folder={childFolder} />
             ))}
             {childrenFiles.map((childFile) => (
-              //ORIGIN
-              // <SidebarMenuButton
-              //   key={childFile._id}
-              //   className="pl-6 text-sm text-muted-foreground hover:text-primary"
-              // >
-              //   <File className="w-4 h-4 mr-1" />
-              //   {childFile.originalName}
-              // </SidebarMenuButton>
-
-              // <SidebarMenuButton
-              //   key={childFile._id}
-              //   className="pl-6 text-sm text-muted-foreground hover:text-primary relative group/file" // 🔄 уникальный group
-              //   style={{ overflow: 'visible' }}
-              // >
-              //   <File className="w-4 h-4 mr-1 shrink-0" />
-
-              //   <div className="truncate w-[180px]">
-              //     {childFile.originalName}
-              //   </div>
-
-              //   {/* Показывать только при наведении на этот file */}
-              //   <div className="absolute top-full left-0 mt-1 bg-white text-primary text-sm shadow-lg px-2 py-1 rounded z-50 max-w-xs hidden group-hover/file:block whitespace-normal">
-              //     {childFile.originalName}
-              //   </div>
-              // </SidebarMenuButton>
-
-              <FileContextMenu item={childFile}>
+              <ContextMenu
+                item={childFile as FileType}
+                type="file"
+                key={childFile._id}
+              >
                 {/* worked part */}
                 <SidebarMenuButton className="pl-6 text-sm text-muted-foreground hover:text-primary">
                   <File className="w-4 h-4 mr-1 shrink-0" />
@@ -259,7 +213,7 @@ function FolderTree({ folder }: FolderTreeProps) {
                     {childFile.originalName}
                   </OverflowTooltip>
                 </SidebarMenuButton>
-              </FileContextMenu>
+              </ContextMenu>
             ))}
           </SidebarMenuSub>
         </CollapsibleContent>
