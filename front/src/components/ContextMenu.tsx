@@ -23,6 +23,7 @@ import {
   setFolderContents,
 } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
+import { callFolderDownload } from '@/utils/callFolderDownload';
 
 type ContextMenuProps =
   | { item: FileType; type: 'file'; children: ReactNode }
@@ -53,11 +54,11 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
 
   const handleDownload = async () => {
     if (type === 'file') {
-      const url = `/api/files/${item._id}/download`;
+      const url = `/files/${item._id}/download`;
       callFileDownload(url, item.originalName);
     } else {
-      console.log(`[Folder] Downloading: ${item.name}`);
-      // e.g. callFolderDownload(item.id)
+      const url = `/folders/${item._id}/download`;
+      callFolderDownload(url, item.name);
     }
   };
 
