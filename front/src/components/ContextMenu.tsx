@@ -17,7 +17,11 @@ import { useDispatch } from 'react-redux';
 import { openRenameModal } from '@/store/fileManagerSlice';
 
 import { CopyLinkModal } from './CopyLinkModal';
-import { updateFileShareLink } from '@/store/fileManagerSlice';
+import {
+  updateFileShareLink,
+  deleteItem,
+  setFolderContents,
+} from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 
 type ContextMenuProps =
@@ -130,13 +134,31 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
     }
   };
 
-  const handleMoveToBin = () => {
+  const handleMoveToBin = async () => {
     if (type === 'file') {
-      console.log(`[File] Moved to bin: ${item.originalName}`);
-      // deleteFile(item.id)
+      try {
+        await api.delete(`files/${item._id}`);
+        dispatch(deleteItem(item._id));
+
+        const folderId = item.folderId ?? null;
+
+        const res = await api.get('/folders/contents', {
+          params: folderId ? { folderId } : undefined,
+        });
+
+        dispatch(
+          setFolderContents({
+            parentFolderId: folderId,
+            folders: res.data.folders,
+            files: res.data.files,
+          }),
+        );
+      } catch (e) {
+        console.error('Failed to move file to bin', e);
+      }
     } else {
       console.log(`[Folder] Moved to bin: ${item.name}`);
-      // deleteFolder(item.id)
+      // реализация аналогична, если будет soft delete для папок
     }
   };
 
