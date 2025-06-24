@@ -156,17 +156,16 @@ export class FileService {
   private async getParentPathIds(folderId: string): Promise<string[]> {
     const path: string[] = [];
     let currentId: string | null = folderId;
-  
+
     while (currentId) {
       const folder = await this.folderModel.findById(currentId).lean();
       if (!folder) break;
       path.unshift(folder._id.toString());
       currentId = folder.parentFolderId;
     }
-  
+
     return path;
   }
-  
 
   async findById(id: string, ownerId: string) {
     const file = await this.fileModel.findOne({
@@ -214,6 +213,25 @@ export class FileService {
     return {
       sharedUrl: `/files/shared/${file.sharedToken}`,
     };
+  }
+
+  async unshareFile(id: string, ownerId: string) {
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    file.access = 'private';
+    file.sharedToken = null;
+
+    await file.save();
+
+    return { message: 'Link access removed' };
   }
 
   async updateFile(id: string, ownerId: string, dto: UpdateFileDto) {

@@ -86,6 +86,12 @@ export class FilesController {
     return this.proxy.forward('PATCH', url, null, req.headers);
   }
 
+  @Patch('/:id/unshare')
+  async unshareFile(@Param('id') id: string, @Req() req) {
+    const url = `${this.configService.get('FILE_SERVICE_URL')}/files/${id}/unshare`;
+    return this.proxy.forward('PATCH', url, null, req.headers);
+  }
+
   @Get('/shared/:token') //+
   async downloadSharedFile(
     @Param('token') token: string,

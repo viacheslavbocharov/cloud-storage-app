@@ -29,7 +29,6 @@ export class FileController {
     private configService: ConfigService,
   ) {}
 
-
   @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileUploadManyInterceptor)
@@ -81,6 +80,13 @@ export class FileController {
   async shareFile(@Param('id') id: string, @Req() req) {
     const ownerId = req.user?.sub;
     return this.fileService.shareFile(id, ownerId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch(':id/unshare')
+  async unshareFile(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.fileService.unshareFile(id, ownerId);
   }
 
   @Get('shared/:token')
