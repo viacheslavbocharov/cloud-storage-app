@@ -21,6 +21,7 @@ export type FolderType = {
   key: string;
   sharedToken: string | null;
   access: 'private' | 'link';
+  parentFolderId: string | null;
 };
 
 type RenameItem = {

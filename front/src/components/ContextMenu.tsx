@@ -129,32 +129,33 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
 
 
   const handleMoveToBin = async () => {
+  try {
     if (type === 'file') {
-      try {
-        await api.delete(`files/${item._id}`);
-        dispatch(deleteItem(item._id));
-
-        const folderId = item.folderId ?? null;
-
-        const res = await api.get('/folders/contents', {
-          params: folderId ? { folderId } : undefined,
-        });
-
-        dispatch(
-          setFolderContents({
-            parentFolderId: folderId,
-            folders: res.data.folders,
-            files: res.data.files,
-          }),
-        );
-      } catch (e) {
-        console.error('Failed to move file to bin', e);
-      }
+      await api.delete(`files/${item._id}`);
+      dispatch(deleteItem(item._id));
     } else {
-      console.log(`[Folder] Moved to bin: ${item.name}`);
-      // реализация аналогична, если будет soft delete для папок
+      await api.delete(`folders/${item._id}`);
+      dispatch(deleteItem(item._id));
     }
-  };
+
+    const folderId = type === 'file' ? item.folderId ?? null : item.parentFolderId ?? null;
+
+    const res = await api.get('/folders/contents', {
+      params: folderId ? { folderId } : undefined,
+    });
+
+    dispatch(
+      setFolderContents({
+        parentFolderId: folderId,
+        folders: res.data.folders,
+        files: res.data.files,
+      }),
+    );
+  } catch (e) {
+    console.error(`Failed to move ${type} to bin`, e);
+  }
+};
+
 
   return (
     <>
