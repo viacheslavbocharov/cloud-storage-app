@@ -47,6 +47,12 @@ export class FoldersController {
     return this.proxy.forward('PATCH', url, null, req.headers);
   }
 
+  @Patch('/:id/unshare')
+  async unshareFolder(@Param('id') id: string, @Req() req) {
+    const url = `${this.configService.get('FILE_SERVICE_URL')}/folders/${id}/unshare`;
+    return this.proxy.forward('PATCH', url, null, req.headers);
+  }
+
   @Post('/upload-folder') //+
   async uploadFolder(@Req() req: Request, @Res() res: Response) {
     const proxyReq = http.request(
@@ -114,7 +120,6 @@ export class FoldersController {
         headers: req.headers,
       },
       (proxyRes) => {
-        // Устанавливаем заголовок для загрузки
         res.setHeader(
           'Content-Disposition',
           proxyRes.headers['content-disposition'] ||

@@ -20,6 +20,7 @@ export type FolderType = {
   path: string[];
   key: string;
   sharedToken: string | null;
+  access: 'private' | 'link';
 };
 
 type RenameItem = {
@@ -147,16 +148,25 @@ const fileManagerSlice = createSlice({
       }
     },
 
-    updateFileShareLink(
+    updateItemShareLink(
       state,
       action: PayloadAction<{ id: string; sharedToken: string | null }>,
     ) {
       const { id, sharedToken } = action.payload;
+
       for (const files of Object.values(state.filesByFolderId)) {
         const file = files.find((f) => f._id === id);
         if (file) {
           file.sharedToken = sharedToken;
           file.access = sharedToken ? 'link' : 'private';
+        }
+      }
+
+      for (const folders of Object.values(state.foldersByParentId)) {
+        const folder = folders.find((f) => f._id === id);
+        if (folder) {
+          folder.sharedToken = sharedToken;
+          folder.access = sharedToken ? 'link' : 'private';
         }
       }
     },
@@ -176,7 +186,7 @@ export const {
   closeRenameModal,
   updateFileName,
   updateFolderName,
-  updateFileShareLink,
+  updateItemShareLink,
 } = fileManagerSlice.actions;
 
 export const selectRenameItem = (state: RootState) =>

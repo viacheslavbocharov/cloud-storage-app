@@ -50,6 +50,13 @@ export class FolderController {
   }
 
   @UseGuards(AuthGuard)
+  @Patch(':id/unshare')
+  async unshareFolder(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.folderService.unshareFolder(id, ownerId);
+  }
+
+  @UseGuards(AuthGuard)
   @Post('upload-folder')
   async uploadFolder(@Req() req, @Res() res) {
     rawUploadMiddleware(req, res, async () => {

@@ -26,20 +26,6 @@ export function RenameModal() {
     if (item) setNewName(item.originalName);
   }, [item]);
 
-  // const handleSubmit = async () => {
-  //   if (!item) return;
-  //   try {
-  //     setIsLoading(true);
-  //     const res = await api.patch(`/files/${item.id}`, { originalName: newName });
-  //     dispatch(updateFileName({ id: item.id, newName }));
-  //     dispatch(closeRenameModal());
-  //   } catch (err) {
-  //     console.error('❌ Rename error:', err);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const handleSubmit = async () => {
     if (!item) return;
     setIsLoading(true);

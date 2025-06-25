@@ -18,7 +18,7 @@ import { openRenameModal } from '@/store/fileManagerSlice';
 
 import { CopyLinkModal } from './CopyLinkModal';
 import {
-  updateFileShareLink,
+  updateItemShareLink,
   deleteItem,
   setFolderContents,
 } from '@/store/fileManagerSlice';
@@ -72,7 +72,7 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
           type,
         }),
       );
-    } else if (type === 'folder'){
+    } else if (type === 'folder') {
       dispatch(
         openRenameModal({
           id: item._id,
@@ -84,56 +84,49 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
   };
 
   const handleShare = async () => {
-    if (type === 'file') {
-      try {
-        const res = await api.patch<{ sharedUrl: string }>(
-          `files/${item._id}/share`,
-        );
+    try {
+      const path = type === 'file' ? 'files' : 'folders';
 
-        const sharedUrl = `http://192.168.1.99:3000/api${res.data.sharedUrl}`;
+      const res = await api.patch<{ sharedUrl: string }>(
+        `${path}/${item._id}/share`,
+      );
 
-        dispatch(
-          updateFileShareLink({
-            id: item._id,
-            sharedToken: res.data.sharedUrl.split('/').pop()!,
-          }),
-        );
-        setShareUrl(sharedUrl);
-      } catch (e) {
-        console.error('Failed to share file', e);
-      }
-    } else {
-      console.log(`[Folder] Open access to: ${item.name}`);
-      // shareFolder(item)
+      const sharedUrl = `http://192.168.1.99:3000/api${res.data.sharedUrl}`;
+
+      dispatch(
+        updateItemShareLink({
+          id: item._id,
+          sharedToken: res.data.sharedUrl.split('/').pop()!,
+        }),
+      );
+      setShareUrl(sharedUrl);
+    } catch (e) {
+      console.error(`Failed to share ${type}`, e);
     }
   };
 
   const handleRevoke = async () => {
-    if (type === 'file') {
-      try {
-        await api.patch(`files/${item._id}/unshare`);
+  try {
+    const path = type === 'file' ? 'files' : 'folders';
 
-        dispatch(updateFileShareLink({ id: item._id, sharedToken: null }));
-      } catch (e) {
-        console.error('Failed to revoke link access', e);
-      }
-    } else {
-      console.log(`[Folder] Access revoked: ${item.name}`);
-      // revokeFolderAccess(item.id)
-    }
-  };
+    await api.patch(`${path}/${item._id}/unshare`);
+
+    dispatch(updateItemShareLink({ id: item._id, sharedToken: null }));
+  } catch (e) {
+    console.error(`Failed to revoke ${type} link access`, e);
+  }
+};
+
 
   const handleCopyLink = () => {
-    if (type === 'file') {
-      if (type === 'file' && item.sharedToken) {
-        const sharedUrl = `http://192.168.1.99:3000/api/files/shared/${item.sharedToken}`;
-        setShareUrl(sharedUrl);
-      }
-    } else {
-      console.log(`[Folder] Copying link: ${item.name}`);
-      // navigator.clipboard.writeText(...)
-    }
-  };
+  if (!item.sharedToken) return;
+
+  const base = type === 'file' ? 'files' : 'folders';
+  const sharedUrl = `http://192.168.1.99:3000/api/${base}/shared/${item.sharedToken}`;
+
+  setShareUrl(sharedUrl);
+};
+
 
   const handleMoveToBin = async () => {
     if (type === 'file') {

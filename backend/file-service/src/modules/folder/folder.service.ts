@@ -153,6 +153,25 @@ export class FolderService {
     };
   }
 
+    async unshareFolder(id: string, ownerId: string) {
+      const folder = await this.folderModel.findOne({
+        _id: id,
+        ownerId,
+        isDeleted: { $ne: true },
+      });
+  
+      if (!folder) {
+        throw new NotFoundException('Folder not found');
+      }
+  
+      folder.access = 'private';
+      folder.sharedToken = null;
+  
+      await folder.save();
+  
+      return { message: 'Link access removed' };
+    }
+
   async buildFolderPath(folderId: string | null): Promise<string | null> {
     if (!folderId) return null;
 
