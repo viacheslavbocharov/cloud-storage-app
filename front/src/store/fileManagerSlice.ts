@@ -136,6 +136,17 @@ const fileManagerSlice = createSlice({
         if (file) file.originalName = newName;
       }
     },
+    updateFolderName(
+      state,
+      action: PayloadAction<{ id: string; newName: string }>,
+    ) {
+      const { id, newName } = action.payload;
+      for (const folderList of Object.values(state.foldersByParentId)) {
+        const folder = folderList.find((f) => f._id === id);
+        if (folder) folder.name = newName;
+      }
+    },
+
     updateFileShareLink(
       state,
       action: PayloadAction<{ id: string; sharedToken: string | null }>,
@@ -164,6 +175,7 @@ export const {
   openRenameModal,
   closeRenameModal,
   updateFileName,
+  updateFolderName,
   updateFileShareLink,
 } = fileManagerSlice.actions;
 

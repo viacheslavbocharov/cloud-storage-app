@@ -72,7 +72,7 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
           type,
         }),
       );
-    } else {
+    } else if (type === 'folder'){
       dispatch(
         openRenameModal({
           id: item._id,
