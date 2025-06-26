@@ -125,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      
+
       {/* file rename modal */}
       <RenameModal />
     </>
@@ -136,6 +136,7 @@ type FolderTreeProps = {
   folder: {
     _id: string;
     name: string;
+    path: string[];
   };
 };
 
@@ -175,9 +176,8 @@ function FolderTree({ folder }: FolderTreeProps) {
   };
 
   const handleClick = () => {
-    dispatch(setCurrentPath([folder._id]));
+    dispatch(setCurrentPath([...folder.path, folder._id]));
   };
-
 
   return (
     <SidebarMenuItem>
@@ -186,11 +186,7 @@ function FolderTree({ folder }: FolderTreeProps) {
         onOpenChange={(open) => open && handleLoad()}
         className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
       >
-        <ContextMenu
-          item={folder as FolderType}
-          type="folder"
-          key={folder._id}
-        >
+        <ContextMenu item={folder as FolderType} type="folder" key={folder._id}>
           <CollapsibleTrigger asChild>
             <SidebarMenuButton
               isActive={isActive}
