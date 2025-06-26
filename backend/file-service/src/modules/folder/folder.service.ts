@@ -56,7 +56,12 @@ export class FolderService {
   //   return folder.save();
   // }
 
-  async create(dto: CreateFolderDto, ownerId: string, isSystem = false, sharedToken = null) {
+  async create(
+    dto: CreateFolderDto,
+    ownerId: string,
+    isSystem = false,
+    sharedToken = null,
+  ) {
     const existing = await this.folderModel.findOne({
       name: dto.name,
       parentFolderId: dto.parentFolderId ?? null,
@@ -153,24 +158,24 @@ export class FolderService {
     };
   }
 
-    async unshareFolder(id: string, ownerId: string) {
-      const folder = await this.folderModel.findOne({
-        _id: id,
-        ownerId,
-        isDeleted: { $ne: true },
-      });
-  
-      if (!folder) {
-        throw new NotFoundException('Folder not found');
-      }
-  
-      folder.access = 'private';
-      folder.sharedToken = null;
-  
-      await folder.save();
-  
-      return { message: 'Link access removed' };
+  async unshareFolder(id: string, ownerId: string) {
+    const folder = await this.folderModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
+    if (!folder) {
+      throw new NotFoundException('Folder not found');
     }
+
+    folder.access = 'private';
+    folder.sharedToken = null;
+
+    await folder.save();
+
+    return { message: 'Link access removed' };
+  }
 
   async buildFolderPath(folderId: string | null): Promise<string | null> {
     if (!folderId) return null;
@@ -210,59 +215,6 @@ export class FolderService {
     return parts;
   }
 
-  // async saveFileMetadata(
-  //   file: Express.Multer.File,
-  //   ownerId: string,
-  //   folderId: string | null = null,
-  // ) {
-  //   const folderPath = await this.buildFolderPath(folderId);
-  //   const uploadRoot =
-  //     this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
-
-  //   const filename = file.filename; // UUID.ext, имя, заданное в FileInterceptor
-  //   const key = folderPath
-  //     ? `${ownerId}/${folderPath}/${filename}`
-  //     : `${ownerId}/${filename}`;
-
-  //   const fullPath = path.join(uploadRoot, key);
-
-  //   console.log('[📂 FILE DEBUG]', {
-  //     folderPath,
-  //     key,
-  //     fullPath,
-  //   });
-
-  //   const sourcePath = file.path; // ← фактический путь к файлу в temp
-
-  //   // Создаём папки
-  //   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-
-  //   try {
-  //     // Копируем файл из temp → в нужную папку
-  //     fs.copyFileSync(sourcePath, fullPath);
-
-  //     // Удаляем оригинал из temp
-  //     fs.unlinkSync(sourcePath);
-  //   } catch (error) {
-  //     console.error('File move error:', error);
-  //     throw new InternalServerErrorException('Failed to move uploaded file');
-  //   }
-
-  //   // Сохраняем метаданные в MongoDB
-  //   const newFile = new this.fileModel({
-  //     filename,
-  //     originalName: file.originalname,
-  //     mimeType: file.mimetype,
-  //     size: file.size,
-  //     ownerId,
-  //     folderId,
-  //     key,
-  //     access: 'private',
-  //   });
-
-  //   return newFile.save();
-  // }
-
   async saveFileMetadata(
     file: Express.Multer.File,
     ownerId: string,
@@ -273,7 +225,6 @@ export class FolderService {
 
     if (folderId) {
       pathIds.push(...(await this.getParentPathIds(folderId)));
-      pathIds.push(folderId); // добавляем текущую папку
     }
 
     const uploadRoot =
@@ -326,6 +277,16 @@ export class FolderService {
   //   folderId: string | null = null,
   // ): Promise<string | null> {
   //   let currentParentId = folderId;
+  //   let currentKey = '';
+
+  //   if (folderId) {
+  //     const parentFolder = await this.folderModel.findById(folderId).lean();
+  //     if (parentFolder?.key) {
+  //       currentKey = parentFolder.key;
+  //     }
+  //   } else {
+  //     currentKey = ownerId;
+  //   }
 
   //   for (const name of pathParts) {
   //     let folder = await this.folderModel.findOne({
@@ -336,20 +297,24 @@ export class FolderService {
   //     });
 
   //     if (!folder) {
+  //       const fullKey = `${currentKey}/${name}`; // ← новый путь
+
   //       folder = new this.folderModel({
   //         name,
   //         ownerId,
   //         parentFolderId: currentParentId,
+  //         key: fullKey,
   //       });
+
   //       await folder.save();
   //     }
 
   //     currentParentId = folder._id.toString();
+  //     currentKey = folder.key; // обновляем путь на следующую итерацию
   //   }
 
   //   return currentParentId;
   // }
-
   async findOrCreateFolderPath(
     pathParts: string[],
     ownerId: string,
@@ -357,14 +322,20 @@ export class FolderService {
   ): Promise<string | null> {
     let currentParentId = folderId;
     let currentKey = '';
+    let currentPath: string[] = [];
 
     if (folderId) {
       const parentFolder = await this.folderModel.findById(folderId).lean();
-      if (parentFolder?.key) {
+      if (parentFolder) {
         currentKey = parentFolder.key;
+        currentPath = [
+          ...(parentFolder.path || []),
+          parentFolder._id.toString(),
+        ];
       }
     } else {
       currentKey = ownerId;
+      currentPath = [];
     }
 
     for (const name of pathParts) {
@@ -376,20 +347,22 @@ export class FolderService {
       });
 
       if (!folder) {
-        const fullKey = `${currentKey}/${name}`; // ← новый путь
+        const fullKey = `${currentKey}/${name}`;
 
         folder = new this.folderModel({
           name,
           ownerId,
           parentFolderId: currentParentId,
           key: fullKey,
+          path: [...currentPath],
         });
 
         await folder.save();
       }
 
       currentParentId = folder._id.toString();
-      currentKey = folder.key; // обновляем путь на следующую итерацию
+      currentKey = folder.key;
+      currentPath = [...(folder.path || []), folder._id.toString()];
     }
 
     return currentParentId;

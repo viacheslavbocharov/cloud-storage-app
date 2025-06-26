@@ -25,9 +25,21 @@ import {
 import api from '@/utils/axios';
 import { callFolderDownload } from '@/utils/callFolderDownload';
 
-type ContextMenuProps =
-  | { item: FileType; type: 'file'; children: ReactNode }
-  | { item: FolderType; type: 'folder'; children: ReactNode };
+// type ContextMenuProps =
+//   | { item: FileType; type: 'file'; children: ReactNode }
+//   | { item: FolderType; type: 'folder'; children: ReactNode };
+export type ContextMenuProps =
+  | {
+      item: FileType;
+      type: 'file';
+      children: React.ReactNode;
+    }
+  | {
+      item: FolderType;
+      type: 'folder';
+      children: React.ReactNode;
+    };
+
 
 export function ContextMenu({ children, item, type }: ContextMenuProps) {
   const [open, setOpen] = useState(false);

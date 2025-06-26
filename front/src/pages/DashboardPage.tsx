@@ -20,19 +20,30 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar-11-sidebar';
 
+import { ItemList } from '@/components/ItemList';
+
 export default function DashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { loadedFolders } = useSelector(
     (state: RootState) => state.fileManager,
   );
 
+  const { foldersByParentId, filesByFolderId, currentPath } = useSelector(
+    (state: RootState) => state.fileManager,
+  );
+
+  const currentFolderId =
+    currentPath.length > 0 ? currentPath[currentPath.length - 1] : 'root';
+
+  const folders = foldersByParentId[currentFolderId] ?? [];
+  const files = filesByFolderId[currentFolderId] ?? [];
+
   useEffect(() => {
     const loadRootContents = async () => {
       try {
-        // Если уже загружен root — не загружаем повторно
         if (loadedFolders.includes('root')) return;
 
-        const res = await api.get('/folders/contents'); // без folderId — получаем корень
+        const res = await api.get('/folders/contents');
         dispatch(
           setFolderContents({
             parentFolderId: null,
@@ -75,14 +86,8 @@ export default function DashboardPage() {
           </Breadcrumb>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-          </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-        </div>
+        <ItemList folders={folders} files={files} />
+
       </SidebarInset>
     </SidebarProvider>
   );
