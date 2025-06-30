@@ -11,7 +11,6 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Проверяем переменные окружения
   const requiredEnvVars = [
     'PORT',
     'MONGO_URI',

@@ -35,7 +35,6 @@ async function bootstrap() {
 
   app.enableCors({
     origin: ['http://localhost:5173', 'http://192.168.1.99:5173'],
-    // origin: '*', // или укажи конкретно: ['https://example.com']
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

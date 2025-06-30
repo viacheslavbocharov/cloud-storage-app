@@ -14,7 +14,7 @@ async function bootstrap() {
       bufferLogs: true,
     });
     app.enableCors({
-      origin: ['http://localhost:5173', 'http://192.168.1.99:5173'], // или true или '*'
+      origin: ['http://localhost:5173', 'http://192.168.1.99:5173'], // or true or '*'
       credentials: true,
     });
     app.use(cookieParser());
@@ -33,7 +33,6 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
     const port = Number(configService.get('PORT')) || 3000;
 
-    // ✅ Вывод зарегистрированных маршрутов
     const server = app.getHttpServer();
     const router = server._events.request._router;
     const routes = [];
