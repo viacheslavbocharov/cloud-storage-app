@@ -36,6 +36,8 @@
     "lucide-react": "^0.513.0",
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.30.0",

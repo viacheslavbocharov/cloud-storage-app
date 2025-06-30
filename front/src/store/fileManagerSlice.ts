@@ -33,9 +33,12 @@ type RenameItem = {
 type FileManagerState = {
   currentPath: string[];
   selectedIds: string[];
+  lastSelectedId: string | null;
   searchQuery: string;
   viewingMode: 'normal' | 'trash';
   draggingId: string | null;
+  isDragging: boolean;
+  dragItems: { id: string; type: 'file' | 'folder' }[];
   renameItem: RenameItem | null;
 
   foldersByParentId: Record<string, FolderType[]>;
@@ -46,9 +49,12 @@ type FileManagerState = {
 const initialState: FileManagerState = {
   currentPath: [],
   selectedIds: [],
+  lastSelectedId: null,
   searchQuery: '',
   viewingMode: 'normal',
   draggingId: null,
+  isDragging: false,
+  dragItems: [],
   renameItem: null,
 
   foldersByParentId: {},
@@ -89,9 +95,6 @@ const fileManagerSlice = createSlice({
     },
     setViewingMode(state, action: PayloadAction<'normal' | 'trash'>) {
       state.viewingMode = action.payload;
-    },
-    setDraggingId(state, action: PayloadAction<string | null>) {
-      state.draggingId = action.payload;
     },
 
     deleteItem(state, action: PayloadAction<string>) {
@@ -171,6 +174,47 @@ const fileManagerSlice = createSlice({
         }
       }
     },
+    setDraggingId(state, action: PayloadAction<string | null>) {
+      state.draggingId = action.payload;
+    },
+    setLastSelectedId(state, action: PayloadAction<string | null>) {
+      state.lastSelectedId = action.payload;
+    },
+    setIsDragging(state, action: PayloadAction<boolean>) {
+      state.isDragging = action.payload;
+    },
+    setDragItems(
+      state,
+      action: PayloadAction<{ id: string; type: 'file' | 'folder' }[]>,
+    ) {
+      state.dragItems = action.payload;
+    },
+    selectRange(state, action: PayloadAction<string>) {
+      const currentFolderId =
+        state.currentPath[state.currentPath.length - 1] || 'root';
+
+      const allItems = [
+        ...(state.foldersByParentId[currentFolderId] || []).map((f) => ({
+          id: f._id,
+        })),
+        ...(state.filesByFolderId[currentFolderId] || []).map((f) => ({
+          id: f._id,
+        })),
+      ];
+
+      const startIndex = allItems.findIndex(
+        (item) => item.id === state.lastSelectedId,
+      );
+      const endIndex = allItems.findIndex((item) => item.id === action.payload);
+
+      if (startIndex === -1 || endIndex === -1) return;
+
+      const [from, to] =
+        startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
+      const range = allItems.slice(from, to + 1).map((item) => item.id);
+
+      state.selectedIds = range;
+    },
   },
 });
 
@@ -188,6 +232,10 @@ export const {
   updateFileName,
   updateFolderName,
   updateItemShareLink,
+  setLastSelectedId,
+  setIsDragging,
+  setDragItems,
+  selectRange,
 } = fileManagerSlice.actions;
 
 export const selectRenameItem = (state: RootState) =>

@@ -5,14 +5,6 @@ import { setFolderContents } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 
 import { AppSidebar } from '@/components/Sidebar-11';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/sidebar-11-breadcrumb';
 import { Separator } from '@/components/ui/sidebar-11-separator';
 import {
   SidebarInset,
@@ -22,6 +14,11 @@ import {
 
 import { ItemList } from '@/components/ItemList';
 import { FolderBreadcrumbs } from '@/components/FolderBreadcrumbs';
+
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
+import { CustomDragLayer } from '@/components/CustomDragLayer';
 
 export default function DashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -61,21 +58,23 @@ export default function DashboardPage() {
   }, [dispatch, loadedFolders]);
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <FolderBreadcrumbs />
-        </header>
+    <DndProvider backend={HTML5Backend}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <FolderBreadcrumbs />
+          </header>
 
-        <ItemList folders={folders} files={files} />
-
-      </SidebarInset>
-    </SidebarProvider>
+          <ItemList folders={folders} files={files} />
+          <CustomDragLayer />
+        </SidebarInset>
+      </SidebarProvider>
+    </DndProvider>
   );
 }

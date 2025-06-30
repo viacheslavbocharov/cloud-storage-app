@@ -623,11 +623,6 @@ export class FolderService {
 
     const pathIds: string[] = [];
 
-    // if (destinationId) {
-    //   pathIds.push(...(await this.getParentPathIds(destinationId)));
-    //   pathIds.push(destinationId);
-    // }
-
     // 🛡 Проверка: destinationId не должен быть файлом
     if (destinationId) {
       const destinationFolder = await this.folderModel.findOne({
