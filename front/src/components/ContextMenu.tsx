@@ -103,7 +103,7 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
         `${path}/${item._id}/share`,
       );
 
-      const sharedUrl = `http://192.168.1.99:3000/api${res.data.sharedUrl}`;
+      const sharedUrl = `http://localhost:3000/api${res.data.sharedUrl}`;
 
       dispatch(
         updateItemShareLink({
@@ -134,7 +134,7 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
   if (!item.sharedToken) return;
 
   const base = type === 'file' ? 'files' : 'folders';
-  const sharedUrl = `http://192.168.1.99:3000/api/${base}/shared/${item.sharedToken}`;
+  const sharedUrl = `http://localhost:3000/api/${base}/shared/${item.sharedToken}`;
 
   setShareUrl(sharedUrl);
 };

@@ -1,6 +1,5 @@
 import { AppThunk } from '@/store';
 import api from '@/utils/axios';
-import { RootState } from '@/store/index';
 import { setFolderContents } from '../fileManagerSlice';
 
 export const moveItems =
@@ -13,7 +12,7 @@ export const moveItems =
     if (dragItems.length === 0) return;
 
     try {
-      await api.post('/files/move', {
+      await api.post('/folders/move', {
         items: dragItems,
         destinationId,
       });
@@ -22,15 +21,15 @@ export const moveItems =
       const affectedFolders = new Set<string | null>();
       dragItems.forEach((item) => {
         if (item.type === 'file') {
-          const fileFolder = Object.entries(state.filesByFolderId).find(([_, files]) =>
-            files.some((f) => f._id === item.id)
+          const fileFolder = Object.entries(state.filesByFolderId).find(
+            ([_, files]) => files.some((f) => f._id === item.id),
           );
           if (fileFolder) affectedFolders.add(fileFolder[0]);
         }
 
         if (item.type === 'folder') {
-          const folderParent = Object.entries(state.foldersByParentId).find(([_, folders]) =>
-            folders.some((f) => f._id === item.id)
+          const folderParent = Object.entries(state.foldersByParentId).find(
+            ([_, folders]) => folders.some((f) => f._id === item.id),
           );
           if (folderParent) affectedFolders.add(folderParent[0]);
         }
@@ -48,7 +47,7 @@ export const moveItems =
             parentFolderId: folderId === 'root' ? null : folderId,
             folders: res.data.folders,
             files: res.data.files,
-          })
+          }),
         );
       }
     } catch (error) {
