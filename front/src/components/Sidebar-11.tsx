@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/sidebar-11-sidebar';
 import { CreateDropdown } from './CreateDropdown.tsx';
 import { SearchInput } from './SearchInput.tsx';
-import { BinButton } from './Bin.tsx';
+import { BinButton } from './BinButton.tsx';
 import { AccountToolbar } from './AccountToolbar.tsx';
 import { OverflowTooltip } from './OverflowTooltip.tsx';
 import { ContextMenu } from './ContextMenu.tsx';
@@ -37,6 +37,7 @@ import {
   setFolderContents,
   setSelectedIds,
   setLastSelectedId,
+  setViewingMode,
 } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 import { RenameModal } from './RenameModal.tsx';
@@ -62,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   );
 
   const rootFolders = foldersByParentId['root'] || [];
-  const rootFiles = filesByFolderId['root'] || []; 
+  const rootFiles = filesByFolderId['root'] || [];
 
   const [rootOpen, setRootOpen] = useState(true);
 
@@ -110,7 +111,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuButton
                         ref={rootButtonRef}
                         isActive={currentPath.length === 0}
-                        onClick={() => dispatch(setCurrentPath([]))}
+                        onClick={() => {
+                          dispatch(setCurrentPath([]));
+                          dispatch(setViewingMode('normal'));
+                        }}
                         className={cn(
                           'font-semibold',
                           isOver && canDrop && 'bg-primary/10', // 👈 визуальная подсветка при drop
@@ -134,6 +138,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             key={file._id}
                           >
                             <SidebarMenuButton
+                              onClick={() => dispatch(setViewingMode('normal'))}
                               isActive={selectedIds.includes(file._id)} // ✅ добавлено
                               className="pl-6 text-sm text-muted-foreground hover:text-primary"
                             >
@@ -244,6 +249,7 @@ function FolderTree({ folder }: FolderTreeProps) {
       dispatch(setCurrentPath([...folder.path, folder._id]));
       dispatch(setSelectedIds([folder._id]));
       dispatch(setLastSelectedId(folder._id));
+      dispatch(setViewingMode('normal'));
     }
   };
 
@@ -309,6 +315,7 @@ function FolderTree({ folder }: FolderTreeProps) {
                     } else {
                       dispatch(setSelectedIds([childFile._id]));
                       dispatch(setLastSelectedId(childFile._id));
+                      dispatch(setViewingMode('normal'));
                     }
                   }}
                   isActive={selectedIds.includes(childFile._id)}

@@ -35,7 +35,7 @@ type FileManagerState = {
   selectedIds: string[];
   lastSelectedId: string | null;
   searchQuery: string;
-  viewingMode: 'normal' | 'trash';
+  viewingMode: 'normal' | 'trash' | 'search';
   draggingId: string | null;
   isDragging: boolean;
   dragItems: { id: string; type: 'file' | 'folder' }[];
@@ -44,6 +44,9 @@ type FileManagerState = {
   foldersByParentId: Record<string, FolderType[]>;
   filesByFolderId: Record<string, FileType[]>;
   loadedFolders: string[]; // folderId[] + 'root'
+
+  binFolders: FolderType[];
+  binFiles: FileType[];
 };
 
 const initialState: FileManagerState = {
@@ -60,6 +63,9 @@ const initialState: FileManagerState = {
   foldersByParentId: {},
   filesByFolderId: {},
   loadedFolders: [],
+
+  binFolders: [],
+  binFiles: [],
 };
 
 const fileManagerSlice = createSlice({
@@ -93,7 +99,10 @@ const fileManagerSlice = createSlice({
     setSearchQuery(state, action: PayloadAction<string>) {
       state.searchQuery = action.payload;
     },
-    setViewingMode(state, action: PayloadAction<'normal' | 'trash'>) {
+    setViewingMode(
+      state,
+      action: PayloadAction<'normal' | 'trash' | 'search'>,
+    ) {
       state.viewingMode = action.payload;
     },
 
@@ -215,6 +224,33 @@ const fileManagerSlice = createSlice({
 
       state.selectedIds = range;
     },
+    setBinContents(
+      state,
+      action: PayloadAction<{ folders: FolderType[]; files: FileType[] }>,
+    ) {
+      state.binFolders = action.payload.folders;
+      state.binFiles = action.payload.files;
+    },
+    selectRangeInBin(state, action: PayloadAction<string>) {
+      const allItems = [
+        ...state.binFolders.map((f) => ({ id: f._id })),
+        ...state.binFiles.map((f) => ({ id: f._id })),
+      ];
+
+      const startIndex = allItems.findIndex(
+        (item) => item.id === state.lastSelectedId,
+      );
+      const endIndex = allItems.findIndex((item) => item.id === action.payload);
+
+      if (startIndex === -1 || endIndex === -1) return;
+
+      const [from, to] =
+        startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
+      const range = allItems.slice(from, to + 1).map((item) => item.id);
+
+      state.selectedIds = range;
+    },
+    
   },
 });
 
@@ -236,6 +272,8 @@ export const {
   setIsDragging,
   setDragItems,
   selectRange,
+  selectRangeInBin,
+  setBinContents,
 } = fileManagerSlice.actions;
 
 export const selectRenameItem = (state: RootState) =>
