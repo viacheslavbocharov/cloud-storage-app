@@ -61,8 +61,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     (state: RootState) => state.fileManager.selectedIds,
   );
 
-  const rootFolders = foldersByParentId['root'] || []; //foldersByParentId — это объект, где ключ — parentFolderId, а значение — массив вложенных папок;
-  const rootFiles = filesByFolderId['root'] || []; //filesByFolderId — это объект, где ключ — folderId, а значение — массив файлов в этой папке.
+  const rootFolders = foldersByParentId['root'] || [];
+  const rootFiles = filesByFolderId['root'] || []; 
 
   const [rootOpen, setRootOpen] = useState(true);
 
@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: 'ITEM',
     drop: () => {
-      dispatch(moveItems(null)); // 👈 перемещение в корень
+      dispatch(moveItems(null)); // move to the root
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),

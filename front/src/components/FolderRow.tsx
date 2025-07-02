@@ -94,7 +94,7 @@ export function FolderRow({ item }: Props) {
     item: () => {
       dispatch(setIsDragging(true));
       const payload = isSelected
-        ? selectedIds.map((id) => ({ id, type: 'folder' as const })) // 👈 важно
+        ? selectedIds.map((id) => ({ id, type: 'folder' as const }))
         : [{ id: item._id, type: 'folder' as const }];
       dispatch(setDragItems(payload));
       return { id: item._id };
