@@ -623,97 +623,75 @@ export class FolderService {
       updated,
     };
   }
-
   private async _moveFolder(
-  folderId: string,
-  ownerId: string,
-  newParentId: string | null,
-  newPathIds: string[],
-  baseKey: string,
-) {
-  const folder = await this.folderModel.findOne({
-    _id: folderId,
-    ownerId,
-    isDeleted: { $ne: true },
-  });
-
-  if (!folder) return;
-
-  const oldKey = folder.key;
-  const newKey = `${baseKey}/${folder.name}`;
-
-  const uploadRoot =
-    this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
-  const oldPathOnDisk = path.join(uploadRoot, oldKey);
-  const newPathOnDisk = path.join(uploadRoot, newKey);
-
-  // ✅ Переносим ТОЛЬКО корневую папку физически
-  await moveFsEntry(oldPathOnDisk, newPathOnDisk);
-
-  // Обновляем текущую папку в базе
-  folder.parentFolderId = newParentId;
-  folder.path = [...newPathIds];
-  folder.key = newKey;
-  await folder.save();
-
-  // ✅ Обновляем вложенные папки и файлы БЕЗ физического перемещения
-  await this._updateSubfolderKeysAndPaths(
-    folderId,
-    ownerId,
-    newKey,
-    [...newPathIds, folder._id.toString()],
-  );
-}
-
-
-  private async _updateSubfolderKeysAndPaths(
-  parentFolderId: string,
-  ownerId: string,
-  parentKey: string,
-  parentPathIds: string[],
-) {
-  // Обновляем вложенные папки
-  const subfolders = await this.folderModel.find({
-    parentFolderId,
-    ownerId,
-    isDeleted: { $ne: true },
-  });
-
-  for (const subfolder of subfolders) {
-    const newKey = `${parentKey}/${subfolder.name}`;
-
-    // ❗️ НЕ переезжаем физически — они уже уехали вместе с корнем
-    subfolder.key = newKey;
-    subfolder.path = [...parentPathIds];
-    await subfolder.save();
-
-    // Рекурсия дальше
-    await this._updateSubfolderKeysAndPaths(
-      subfolder._id.toString(),
+    folderId: string,
+    ownerId: string,
+    newParentId: string | null,
+    newPath: string[],
+    baseKey: string,
+  ) {
+    const folder = await this.folderModel.findOne({
+      _id: folderId,
       ownerId,
-      newKey,
-      [...parentPathIds, subfolder._id.toString()],
-    );
+      isDeleted: { $ne: true },
+    });
+
+    if (!folder) return;
+
+    const oldKey = folder.key;
+    const newKey = `${baseKey}/${folder.name}`;
+
+    // 📂 Перемещаем папку на диске
+    const uploadRoot =
+      this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
+    const oldPathOnDisk = path.join(uploadRoot, oldKey);
+    const newPathOnDisk = path.join(uploadRoot, newKey);
+
+    await moveFsEntry(oldPathOnDisk, newPathOnDisk);
+
+    // Обновляем папку в БД
+    folder.parentFolderId = newParentId;
+    folder.path = [...newPath];
+    folder.key = newKey;
+    await folder.save();
+    // Рекурсивно обновляем вложенные папки
+    const subfolders = await this.folderModel.find({
+      parentFolderId: folderId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
+    for (const sub of subfolders) {
+      await this._moveFolder(
+        sub._id.toString(),
+        ownerId,
+        folder._id.toString(),
+        [...folder.path, folder._id.toString()],
+        `${folder.key}`,
+      );
+    }
+
+    // Обновляем вложенные файлы и физически перемещаем их
+    const files = await this.fileModel.find({
+      folderId: folderId,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
+    for (const file of files) {
+      const oldFileKey = file.key;
+      const newFileKey = `${folder.key}/${file.filename}`;
+
+      const oldFilePath = path.join(uploadRoot, oldFileKey);
+      const newFilePath = path.join(uploadRoot, newFileKey);
+
+      await moveFsEntry(oldFilePath, newFilePath);
+
+      file.path = [...folder.path, folder._id.toString()];
+      file.key = newFileKey;
+      await file.save();
+    }
   }
-
-  // Обновляем файлы
-  const files = await this.fileModel.find({
-    folderId: parentFolderId,
-    ownerId,
-    isDeleted: { $ne: true },
-  });
-
-  for (const file of files) {
-    const newKey = `${parentKey}/${file.filename}`;
-
-    // ❗️ НЕ переезжаем физически
-    file.key = newKey;
-    file.path = [...parentPathIds];
-    await file.save();
-  }
-}
-
-
   private async _moveFile(
     fileId: string,
     ownerId: string,

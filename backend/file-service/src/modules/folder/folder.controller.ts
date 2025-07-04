@@ -107,12 +107,12 @@ export class FolderController {
     return this.folderService.softDeleteFolder(id, ownerId);
   }
 
-  @UseGuards(AuthGuard)
-  @Post(':id/restore')
-  async restoreFolder(@Param('id') id: string, @Req() req) {
-    const ownerId = req.user?.sub;
-    return this.folderService.restoreFolder(id, ownerId);
-  }
+  // @UseGuards(AuthGuard)
+  // @Post(':id/restore')
+  // async restoreFolder(@Param('id') id: string, @Req() req) {
+  //   const ownerId = req.user?.sub;
+  //   return this.folderService.restoreFolder(id, ownerId);
+  // }
 
   @UseGuards(AuthGuard)
   @Post('move')

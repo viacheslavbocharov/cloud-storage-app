@@ -43,4 +43,69 @@ export class BinService {
 
     return { folders, files };
   }
+
+  // Восстановление цепочки папок вверх
+  async restoreFolderChain(folderId: string, ownerId: string) {
+    let currentId: string | null = folderId;
+    while (currentId) {
+      const folder = await this.folderModel.findOneAndUpdate(
+        { _id: currentId, ownerId },
+        { isDeleted: false, deletedAt: undefined },
+      );
+      currentId = folder?.parentFolderId ?? null;
+    }
+  }
+
+  // Рекурсивное восстановление вниз
+  async restoreFolderRecursively(folderId: string, ownerId: string) {
+    // Восстанавливаем саму папку
+    await this.folderModel.updateOne(
+      { _id: folderId, ownerId },
+      { isDeleted: false, deletedAt: undefined },
+    );
+
+    // Восстанавливаем все файлы в папке
+    await this.fileModel.updateMany(
+      { folderId, ownerId },
+      { isDeleted: false, deletedAt: undefined },
+    );
+
+    // Рекурсивно для всех вложенных папок
+    const subfolders = await this.folderModel.find({
+      parentFolderId: folderId,
+      ownerId,
+    });
+
+    for (const sub of subfolders) {
+      await this.restoreFolderRecursively(sub._id.toString(), ownerId);
+    }
+  }
+
+  async restoreItems(
+    ownerId: string,
+    items: { id: string; type: 'file' | 'folder' }[],
+  ) {
+    for (const item of items) {
+      if (item.type === 'file') {
+        // Восстанавливаем сам файл
+        const file = await this.fileModel.findOneAndUpdate(
+          { _id: item.id, ownerId },
+          { isDeleted: false, deletedAt: undefined },
+        );
+
+        // Восстанавливаем всю цепочку папок вверх
+        if (file?.folderId) {
+          await this.restoreFolderChain(file.folderId, ownerId);
+        }
+      }
+
+      if (item.type === 'folder') {
+        // Сначала восстанавливаем цепочку вверх
+        await this.restoreFolderChain(item.id, ownerId);
+
+        // Потом рекурсивно вниз
+        await this.restoreFolderRecursively(item.id, ownerId);
+      }
+    }
+  }
 }

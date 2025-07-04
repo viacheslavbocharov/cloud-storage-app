@@ -2,9 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import api from '@/utils/axios';
-import {
-  setBinContents,
-} from '@/store/fileManagerSlice';
+import { setBinContents } from '@/store/fileManagerSlice';
 import { FolderRowBin } from './FolderRowBin';
 import { FileRowBin } from './FileRowBin';
 
