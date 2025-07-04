@@ -24,6 +24,7 @@ import {
 } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 import { callFolderDownload } from '@/utils/callFolderDownload';
+import { store } from '@/store';
 
 // type ContextMenuProps =
 //   | { item: FileType; type: 'file'; children: ReactNode }
@@ -140,17 +141,47 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
 };
 
 
-  const handleMoveToBin = async () => {
+const handleMoveToBin = async () => {
   try {
-    if (type === 'file') {
-      await api.delete(`files/${item._id}`);
-      dispatch(deleteItem(item._id));
-    } else {
-      await api.delete(`folders/${item._id}`);
-      dispatch(deleteItem(item._id));
-    }
+    const state = store.getState().fileManager;
+    const { selectedIds, foldersByParentId, filesByFolderId } = state;
 
-    const folderId = type === 'file' ? item.folderId ?? null : item.parentFolderId ?? null;
+    // Если есть выделенные элементы
+    const idsToDelete = selectedIds.length > 0 ? selectedIds : [item._id];
+
+    // Собираем все папки и файлы
+    const allFolders = Object.values(foldersByParentId).flat();
+    const allFiles = Object.values(filesByFolderId).flat();
+
+    // Преобразуем в массив объектов {id, type}
+    const itemsToDelete = idsToDelete.map((id) => {
+      if (allFiles.some((f) => f._id === id)) {
+        return { id, type: 'file' as const };
+      }
+      if (allFolders.some((f) => f._id === id)) {
+        return { id, type: 'folder' as const };
+      }
+      // Если элемент не найден
+      throw new Error(`Unknown item id: ${id}`);
+    });
+
+    // Запускаем удаление всех элементов параллельно
+    await Promise.all(
+      itemsToDelete.map(async ({ id, type }) => {
+        if (type === 'file') {
+          await api.delete(`files/${id}`);
+        } else {
+          await api.delete(`folders/${id}`);
+        }
+        dispatch(deleteItem(id));
+      })
+    );
+
+    // После удаления — обновляем список содержимого текущей папки
+    const folderId =
+      type === 'file'
+        ? (item as any).folderId ?? null
+        : (item as any).parentFolderId ?? null;
 
     const res = await api.get('/folders/contents', {
       params: folderId ? { folderId } : undefined,
@@ -161,12 +192,13 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
         parentFolderId: folderId,
         folders: res.data.folders,
         files: res.data.files,
-      }),
+      })
     );
   } catch (e) {
-    console.error(`Failed to move ${type} to bin`, e);
+    console.error(`Failed to move to bin`, e);
   }
 };
+
 
 
   return (

@@ -20,6 +20,7 @@ import { selectRange } from '@/store/fileManagerSlice';
 
 import { setFolderContents } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
+import { store } from '@/store';
 
 type Props = {
   item: FolderType;
@@ -93,9 +94,24 @@ export function FolderRow({ item }: Props) {
     type: 'ITEM',
     item: () => {
       dispatch(setIsDragging(true));
+
+      const state = store.getState().fileManager;
+
+      const allFolders = Object.values(state.foldersByParentId).flat();
+      const allFiles = Object.values(state.filesByFolderId).flat();
+
       const payload = isSelected
-        ? selectedIds.map((id) => ({ id, type: 'folder' as const }))
+        ? state.selectedIds.map((id) => {
+            if (allFiles.some((f) => f._id === id)) {
+              return { id, type: 'file' as const };
+            }
+            if (allFolders.some((f) => f._id === id)) {
+              return { id, type: 'folder' as const };
+            }
+            throw new Error(`Unknown id ${id}`);
+          })
         : [{ id: item._id, type: 'folder' as const }];
+
       dispatch(setDragItems(payload));
       return { id: item._id };
     },
