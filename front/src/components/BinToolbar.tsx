@@ -106,7 +106,7 @@ export function BinToolbar() {
   };
 
   return (
-    <div className="flex justify-end px-4 py-2">
+    <div className="flex justify-end py-2">
       <Button
         className="rounded-lg text-sm font-medium shadow-sm cursor-pointer"
         variant="outline"

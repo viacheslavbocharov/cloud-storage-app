@@ -50,7 +50,7 @@ export function FolderRowBin({ item }: Props) {
 
   const handleDoubleClick = () => {
     dispatch(setSelectedIds([]));
-    dispatch(setCurrentPath([...item.path, item._id]));
+    dispatch(setCurrentPath(Array.from(new Set([...item.path, item._id]))));
   };
 
   const formattedPath = (() => {

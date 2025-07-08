@@ -20,7 +20,6 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { CustomDragLayer } from '@/components/CustomDragLayer';
-import { Button } from '@/components/ui/button';
 import { BinToolbar } from '@/components/BinToolbar';
 
 export default function DashboardPage() {
@@ -31,6 +30,9 @@ export default function DashboardPage() {
     foldersByParentId,
     filesByFolderId,
     currentPath,
+    searchQuery,
+    searchFolders,
+    searchFiles,
   } = useSelector((state: RootState) => state.fileManager);
 
   const currentFolderId =
@@ -75,30 +77,29 @@ export default function DashboardPage() {
                 className="mr-2 data-[orientation=vertical]:h-4"
               />
               {viewingMode === 'normal' && <FolderBreadcrumbs />}
-              {viewingMode === 'trash' && (
-                <span className="text-sm text-muted-foreground">Bin</span>
-              )}
-              {viewingMode === 'search' && (
-                <span className="text-sm text-muted-foreground">
-                  Search Results
+              {viewingMode === 'bin' && (
+                <span className="text-sm text-muted-foreground font-semibold">
+                  Bin
                 </span>
               )}
             </div>
 
-            {viewingMode === 'trash' && (
-              <BinToolbar />
-            )}
+            {viewingMode === 'bin' && <BinToolbar />}
           </header>
-
-          {viewingMode === 'normal' && (
-            <ItemList folders={folders} files={files} />
-          )}
-          {viewingMode === 'trash' && <BinView />}
-          {viewingMode === 'search' && (
-            <div className="p-4 text-sm text-muted-foreground">
-              Search results will be shown here.
+          {searchQuery && (
+            <div className="px-4 py-2 text-sm font-medium text-muted-foreground">
+              Search Results
             </div>
           )}
+
+          {viewingMode === 'normal' && !searchQuery && (
+            <ItemList folders={folders} files={files} />
+          )}
+          {viewingMode === 'normal' && searchQuery && (
+            <ItemList folders={searchFolders} files={searchFiles} />
+          )}
+
+          {viewingMode === 'bin' && <BinView />}
 
           <CustomDragLayer />
         </SidebarInset>

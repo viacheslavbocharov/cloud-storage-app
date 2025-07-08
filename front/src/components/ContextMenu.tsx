@@ -13,8 +13,13 @@ import type { FileType } from '@/store/fileManagerSlice';
 import type { FolderType } from '@/store/fileManagerSlice';
 import { callFileDownload } from '@/utils/callFileDownload';
 
-import { useDispatch } from 'react-redux';
-import { openRenameModal } from '@/store/fileManagerSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  openRenameModal,
+  setLastSelectedId,
+  setSearchContents,
+  setSelectedIds,
+} from '@/store/fileManagerSlice';
 
 import { CopyLinkModal } from './CopyLinkModal';
 import {
@@ -24,6 +29,8 @@ import {
 } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 import { callFolderDownload } from '@/utils/callFolderDownload';
+import { store, RootState } from '@/store';
+import { refreshSearchResults } from '@/utils/reloadSearchResults';
 
 // type ContextMenuProps =
 //   | { item: FileType; type: 'file'; children: ReactNode }
@@ -40,14 +47,23 @@ export type ContextMenuProps =
       children: React.ReactNode;
     };
 
-
 export function ContextMenu({ children, item, type }: ContextMenuProps) {
   const [open, setOpen] = useState(false);
   const [anchorPoint, setAnchorPoint] = useState({ x: 0, y: 0 });
   const [shareUrl, setShareUrl] = useState<string | null>(null);
 
+  const { searchQuery, viewingMode, selectedIds } = useSelector(
+    (state: RootState) => state.fileManager,
+  );
+
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
+
+    const isAlreadySelected = selectedIds.includes(item._id);
+    if (!(selectedIds.length > 0 && isAlreadySelected)) {
+      dispatch(setSelectedIds([item._id]));
+      dispatch(setLastSelectedId(item._id));
+    }
 
     const menuWidth = 220;
     const menuHeight = 200;
@@ -75,7 +91,8 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
   };
 
   const dispatch = useDispatch();
-  const handleRename = () => {
+
+  const handleRename = async () => {
     if (type === 'file') {
       dispatch(
         openRenameModal({
@@ -112,62 +129,182 @@ export function ContextMenu({ children, item, type }: ContextMenuProps) {
         }),
       );
       setShareUrl(sharedUrl);
+
+      if (searchQuery) {
+        await refreshSearchResults(dispatch, searchQuery, viewingMode);
+      }
     } catch (e) {
       console.error(`Failed to share ${type}`, e);
     }
   };
 
   const handleRevoke = async () => {
-  try {
-    const path = type === 'file' ? 'files' : 'folders';
+    try {
+      const path = type === 'file' ? 'files' : 'folders';
 
-    await api.patch(`${path}/${item._id}/unshare`);
+      await api.patch(`${path}/${item._id}/unshare`);
 
-    dispatch(updateItemShareLink({ id: item._id, sharedToken: null }));
-  } catch (e) {
-    console.error(`Failed to revoke ${type} link access`, e);
-  }
-};
+      dispatch(updateItemShareLink({ id: item._id, sharedToken: null }));
 
+      if (searchQuery) {
+        await refreshSearchResults(dispatch, searchQuery, viewingMode);
+      }
+    } catch (e) {
+      console.error(`Failed to revoke ${type} link access`, e);
+    }
+  };
 
   const handleCopyLink = () => {
-  if (!item.sharedToken) return;
+    if (!item.sharedToken) return;
 
-  const base = type === 'file' ? 'files' : 'folders';
-  const sharedUrl = `http://localhost:3000/api/${base}/shared/${item.sharedToken}`;
+    const base = type === 'file' ? 'files' : 'folders';
+    const sharedUrl = `http://localhost:3000/api/${base}/shared/${item.sharedToken}`;
 
-  setShareUrl(sharedUrl);
-};
+    setShareUrl(sharedUrl);
+  };
 
+  // const handleMoveToBin = async () => {
+  //   try {
+  //     const state = store.getState().fileManager;
+  //     const { selectedIds, foldersByParentId, filesByFolderId } = state;
+
+  //     // Если есть выделенные элементы
+  //     const idsToDelete = selectedIds.length > 0 ? selectedIds : [item._id];
+
+  //     // Собираем все папки и файлы
+  //     const allFolders = Object.values(foldersByParentId).flat();
+  //     const allFiles = Object.values(filesByFolderId).flat();
+
+  //     // Преобразуем в массив объектов {id, type}
+  //     const itemsToDelete = idsToDelete.map((id) => {
+  //       if (allFiles.some((f) => f._id === id)) {
+  //         return { id, type: 'file' as const };
+  //       }
+  //       if (allFolders.some((f) => f._id === id)) {
+  //         return { id, type: 'folder' as const };
+  //       }
+  //       // Если элемент не найден
+  //       throw new Error(`Unknown item id: ${id}`);
+  //     });
+
+  //     // Запускаем удаление всех элементов параллельно
+  //     await Promise.all(
+  //       itemsToDelete.map(async ({ id, type }) => {
+  //         if (type === 'file') {
+  //           await api.delete(`files/${id}`);
+  //         } else {
+  //           await api.delete(`folders/${id}`);
+  //         }
+  //         dispatch(deleteItem(id));
+  //       }),
+  //     );
+
+  //     // После удаления — обновляем список содержимого текущей папки
+  //     const folderId =
+  //       type === 'file'
+  //         ? (item as any).folderId ?? null
+  //         : (item as any).parentFolderId ?? null;
+
+  //     const res = await api.get('/folders/contents', {
+  //       params: folderId ? { folderId } : undefined,
+  //     });
+
+  //     dispatch(
+  //       setFolderContents({
+  //         parentFolderId: folderId,
+  //         folders: res.data.folders,
+  //         files: res.data.files,
+  //       }),
+  //     );
+  //   } catch (e) {
+  //     console.error(`Failed to move to bin`, e);
+  //   }
+  // };
 
   const handleMoveToBin = async () => {
-  try {
-    if (type === 'file') {
-      await api.delete(`files/${item._id}`);
-      dispatch(deleteItem(item._id));
-    } else {
-      await api.delete(`folders/${item._id}`);
-      dispatch(deleteItem(item._id));
+    try {
+      const state = store.getState().fileManager;
+      const {
+        selectedIds,
+        foldersByParentId,
+        filesByFolderId,
+        searchFolders,
+        searchFiles,
+        viewingMode,
+        searchQuery,
+        currentPath,
+      } = state;
+
+      // Если есть выделенные элементы
+      const idsToDelete = selectedIds.length > 0 ? selectedIds : [item._id];
+
+      const allFolders =
+        searchQuery && viewingMode === 'normal'
+          ? searchFolders
+          : Object.values(foldersByParentId).flat();
+
+      const allFiles =
+        searchQuery && viewingMode === 'normal'
+          ? searchFiles
+          : Object.values(filesByFolderId).flat();
+
+      // Преобразуем в массив объектов {id, type}
+      const itemsToDelete = idsToDelete.map((id) => {
+        if (allFiles.some((f) => f._id === id)) {
+          return { id, type: 'file' as const };
+        }
+        if (allFolders.some((f) => f._id === id)) {
+          return { id, type: 'folder' as const };
+        }
+        // Если элемент не найден
+        throw new Error(`Unknown item id: ${id}`);
+      });
+
+      // Запускаем удаление всех элементов параллельно
+      await Promise.all(
+        itemsToDelete.map(async ({ id, type }) => {
+          if (type === 'file') {
+            await api.delete(`files/${id}`);
+          } else {
+            await api.delete(`folders/${id}`);
+          }
+          dispatch(deleteItem(id));
+        }),
+      );
+
+      if (searchQuery) {
+        await refreshSearchResults(dispatch, searchQuery, viewingMode);
+      }
+
+      // После удаления — обновляем список содержимого текущей папки
+      const parentFolderId =
+        currentPath.length > 0 ? currentPath[currentPath.length - 1] : null;
+
+      const res = await api.get('/folders/contents', {
+        params: parentFolderId ? { folderId: parentFolderId } : undefined,
+      });
+
+      dispatch(
+        setFolderContents({
+          parentFolderId,
+          folders: res.data.folders,
+          files: res.data.files,
+        }),
+      );
+
+      // Обновляем корень для Sidebar
+      const resRoot = await api.get('/folders/contents');
+      dispatch(
+        setFolderContents({
+          parentFolderId: null,
+          folders: resRoot.data.folders,
+          files: resRoot.data.files,
+        }),
+      );
+    } catch (e) {
+      console.error(`Failed to move to bin`, e);
     }
-
-    const folderId = type === 'file' ? item.folderId ?? null : item.parentFolderId ?? null;
-
-    const res = await api.get('/folders/contents', {
-      params: folderId ? { folderId } : undefined,
-    });
-
-    dispatch(
-      setFolderContents({
-        parentFolderId: folderId,
-        folders: res.data.folders,
-        files: res.data.files,
-      }),
-    );
-  } catch (e) {
-    console.error(`Failed to move ${type} to bin`, e);
-  }
-};
-
+  };
 
   return (
     <>

@@ -9,7 +9,7 @@ export function BinButton() {
 
   const handleClick = () => {
     dispatch(setCurrentPath([]));
-    dispatch(setViewingMode('trash'));
+    dispatch(setViewingMode('bin'));
     dispatch(setSelectedIds([]));
   };
 

@@ -49,7 +49,7 @@ export function BinView() {
         <FileRowBin key={file._id} item={file} />
       ))}
       {folders.length === 0 && files.length === 0 && (
-        <div className="text-muted-foreground text-sm">Trash is empty</div>
+        <div className="text-muted-foreground text-sm">Bin is empty</div>
       )}
     </div>
   );

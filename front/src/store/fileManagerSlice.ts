@@ -35,7 +35,7 @@ type FileManagerState = {
   selectedIds: string[];
   lastSelectedId: string | null;
   searchQuery: string;
-  viewingMode: 'normal' | 'trash' | 'search';
+  viewingMode: 'normal' | 'bin' ;
   draggingId: string | null;
   isDragging: boolean;
   dragItems: { id: string; type: 'file' | 'folder' }[];
@@ -47,6 +47,9 @@ type FileManagerState = {
 
   binFolders: FolderType[];
   binFiles: FileType[];
+
+  searchFolders: FolderType[];
+  searchFiles: FileType[];
 };
 
 const initialState: FileManagerState = {
@@ -66,6 +69,9 @@ const initialState: FileManagerState = {
 
   binFolders: [],
   binFiles: [],
+
+  searchFolders: [],
+  searchFiles: [],
 };
 
 const fileManagerSlice = createSlice({
@@ -90,7 +96,7 @@ const fileManagerSlice = createSlice({
     },
 
     setCurrentPath(state, action: PayloadAction<string[]>) {
-      state.currentPath = action.payload;
+      state.currentPath = Array.from(new Set(action.payload));
       state.selectedIds = [];
     },
     setSelectedIds(state, action: PayloadAction<string[]>) {
@@ -99,10 +105,7 @@ const fileManagerSlice = createSlice({
     setSearchQuery(state, action: PayloadAction<string>) {
       state.searchQuery = action.payload;
     },
-    setViewingMode(
-      state,
-      action: PayloadAction<'normal' | 'trash' | 'search'>,
-    ) {
+    setViewingMode(state, action: PayloadAction<'normal' | 'bin' >) {
       state.viewingMode = action.payload;
     },
 
@@ -250,7 +253,13 @@ const fileManagerSlice = createSlice({
 
       state.selectedIds = range;
     },
-    
+      setSearchContents(
+      state,
+      action: PayloadAction<{ folders: FolderType[]; files: FileType[] }>,
+    ) {
+      state.searchFolders = action.payload.folders;
+      state.searchFiles = action.payload.files;
+    },
   },
 });
 
@@ -274,6 +283,7 @@ export const {
   selectRange,
   selectRangeInBin,
   setBinContents,
+  setSearchContents,
 } = fileManagerSlice.actions;
 
 export const selectRenameItem = (state: RootState) =>

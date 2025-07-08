@@ -15,6 +15,7 @@ import {
 import { useDrag } from 'react-dnd';
 import { cn } from '@/lib/utils';
 import { selectRange } from '@/store/fileManagerSlice';
+import { store } from '@/store';
 
 type Props = {
   item: FileType;
@@ -23,11 +24,8 @@ type Props = {
 export function FileRow({ item }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const rowRef = useRef<HTMLDivElement>(null);
-  const selectedIds = useSelector(
-    (state: RootState) => state.fileManager.selectedIds,
-  );
-  const lastSelectedId = useSelector(
-    (state: RootState) => state.fileManager.lastSelectedId,
+  const { selectedIds, lastSelectedId, searchQuery } = useSelector(
+    (state: RootState) => state.fileManager,
   );
 
   const shared = item.sharedToken !== null;
@@ -54,6 +52,9 @@ export function FileRow({ item }: Props) {
     e.preventDefault();
     e.stopPropagation();
 
+    dispatch(setSelectedIds([item._id]));
+    dispatch(setLastSelectedId(item._id));
+
     const syntheticEvent = new MouseEvent('contextmenu', {
       bubbles: true,
       cancelable: true,
@@ -68,9 +69,24 @@ export function FileRow({ item }: Props) {
     type: 'ITEM',
     item: () => {
       dispatch(setIsDragging(true));
+
+      const state = store.getState().fileManager;
+
+      const allFolders = Object.values(state.foldersByParentId).flat();
+      const allFiles = Object.values(state.filesByFolderId).flat();
+
       const payload = isSelected
-        ? selectedIds.map((id) => ({ id, type: 'file' as const }))
+        ? state.selectedIds.map((id) => {
+            if (allFiles.some((f) => f._id === id)) {
+              return { id, type: 'file' as const };
+            }
+            if (allFolders.some((f) => f._id === id)) {
+              return { id, type: 'folder' as const };
+            }
+            throw new Error(`Unknown id ${id}`);
+          })
         : [{ id: item._id, type: 'file' as const }];
+
       dispatch(setDragItems(payload));
       return { id: item._id };
     },
@@ -79,6 +95,14 @@ export function FileRow({ item }: Props) {
       dispatch(setDragItems([]));
     },
   });
+
+  const formattedPath = (() => {
+    if (!item.key) return '/';
+    const parts = item.key.split('/');
+    if (parts.length <= 2) return '/';
+    const sliced = parts.slice(1, -1);
+    return '/' + sliced.join('/');
+  })();
 
   return (
     <ContextMenu item={item} type="file">
@@ -96,9 +120,14 @@ export function FileRow({ item }: Props) {
         <div className="flex items-center gap-2 overflow-hidden">
           <FileIcon className="w-4 h-4 shrink-0 text-muted-foreground" />
 
-          <OverflowTooltip className="w-[180px] sm:w-[220px] md:w-[300px] lg:w-[400px]">
+          <OverflowTooltip className="w-[200px]">
             {item.originalName}
           </OverflowTooltip>
+          {formattedPath && searchQuery && (
+            <span className="text-xs text-muted-foreground ml-2">
+              {formattedPath}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

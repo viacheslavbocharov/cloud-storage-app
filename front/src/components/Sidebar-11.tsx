@@ -38,6 +38,7 @@ import {
   setSelectedIds,
   setLastSelectedId,
   setViewingMode,
+  setSearchContents,
 } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
 import { RenameModal } from './RenameModal.tsx';
@@ -49,18 +50,16 @@ import { useEffect, useRef } from 'react';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const dispatch = useDispatch<AppDispatch>();
-  const currentPath = useSelector(
-    (state: RootState) => state.fileManager.currentPath,
-  );
-  const foldersByParentId = useSelector(
-    (state: RootState) => state.fileManager.foldersByParentId,
-  );
-  const filesByFolderId = useSelector(
-    (state: RootState) => state.fileManager.filesByFolderId,
-  );
-  const selectedIds = useSelector(
-    (state: RootState) => state.fileManager.selectedIds,
-  );
+
+  const {
+    currentPath,
+    foldersByParentId,
+    filesByFolderId,
+    selectedIds,
+    searchQuery,
+    viewingMode,
+    lastSelectedId,
+  } = useSelector((state: RootState) => state.fileManager);
 
   const rootFolders = foldersByParentId['root'] || [];
   const rootFiles = filesByFolderId['root'] || [];
@@ -71,8 +70,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: 'ITEM',
-    drop: () => {
-      dispatch(moveItems(null)); // move to the root
+    // drop: () => {
+    //   dispatch(moveItems(null)); // move to the root
+    // },
+    drop: async () => {
+      await dispatch(moveItems(null));
+      if (searchQuery) {
+        const res = await api.get('/search', {
+          params: {
+            query: searchQuery,
+            isDeleted: viewingMode === 'bin' ? 'true' : 'false',
+          },
+        });
+        dispatch(
+          setSearchContents({
+            folders: res.data.folders,
+            files: res.data.files,
+          }),
+        );
+      }
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
@@ -99,61 +115,85 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu>
-                {/* ✅ My Drive как collapsible */}
-                <SidebarMenuItem>
-                  <Collapsible
-                    open={rootOpen}
-                    onOpenChange={(open) => setRootOpen(open)}
-                    className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
-                  >
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        ref={rootButtonRef}
-                        isActive={currentPath.length === 0}
-                        onClick={() => {
-                          dispatch(setCurrentPath([]));
-                          dispatch(setViewingMode('normal'));
-                        }}
-                        className={cn(
-                          'font-semibold',
-                          isOver && canDrop && 'bg-primary/10', // 👈 визуальная подсветка при drop
-                        )}
+              <div className="overflow-x-auto">
+                <div className="min-w-max">
+                  <SidebarMenu className="overflow-x-auto whitespace-nowrap">
+                    <SidebarMenuItem>
+                      <Collapsible
+                        open={rootOpen}
+                        onOpenChange={(open) => setRootOpen(open)}
+                        className="group/collapsible [&[data-state=open]>button>svg:first-child]:rotate-90"
                       >
-                        <ChevronRight className="w-4 h-4 mr-1 transition-transform" />
-                        <Folder className="w-4 h-4 mr-1" />
-                        My Drive
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {rootFolders.map((folder) => (
-                          <FolderTree key={folder._id} folder={folder} />
-                        ))}
-                        {rootFiles.map((file) => (
-                          <ContextMenu
-                            item={file as FileType}
-                            type="file"
-                            key={file._id}
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            ref={rootButtonRef}
+                            isActive={currentPath.length === 0}
+                            onClick={() => {
+                              dispatch(setCurrentPath([]));
+                              dispatch(setViewingMode('normal'));
+                            }}
+                            className={cn(
+                              'font-semibold',
+                              isOver && canDrop && 'bg-primary/10', // 👈 визуальная подсветка при drop
+                            )}
                           >
-                            <SidebarMenuButton
-                              onClick={() => dispatch(setViewingMode('normal'))}
-                              isActive={selectedIds.includes(file._id)} // ✅ добавлено
-                              className="pl-6 text-sm text-muted-foreground hover:text-primary"
-                            >
-                              <File className="w-4 h-4 mr-1 shrink-0" />
-                              <OverflowTooltip className="w-[180px]">
-                                {file.originalName}
-                              </OverflowTooltip>
-                            </SidebarMenuButton>
-                          </ContextMenu>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </SidebarMenuItem>
-              </SidebarMenu>
+                            <ChevronRight className="w-4 h-4 mr-1 transition-transform" />
+                            <Folder className="w-4 h-4 mr-1" />
+                            My Drive
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {rootFolders.map((folder) => (
+                              <FolderTree key={folder._id} folder={folder} />
+                            ))}
+                            {rootFiles.map((file) => (
+                              <ContextMenu
+                                item={file as FileType}
+                                type="file"
+                                key={file._id}
+                              >
+                                <SidebarMenuButton
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const isFileSelected = selectedIds.includes(
+                                      file._id,
+                                    );
+
+                                    if (e.ctrlKey || e.metaKey) {
+                                      const newSelected = isFileSelected
+                                        ? selectedIds.filter(
+                                            (id) => id !== file._id,
+                                          )
+                                        : [...selectedIds, file._id];
+                                      dispatch(setSelectedIds(newSelected));
+                                      dispatch(setLastSelectedId(file._id));
+                                    } else if (e.shiftKey && lastSelectedId) {
+                                      dispatch(setSelectedIds([file._id]));
+                                    } else {
+                                      dispatch(setSelectedIds([file._id]));
+                                      dispatch(setLastSelectedId(file._id));
+                                      dispatch(setViewingMode('normal'));
+                                    }
+                                  }}
+                                  isActive={selectedIds.includes(file._id)} // ✅ добавлено
+                                  className="pl-6 text-sm text-muted-foreground hover:text-primary"
+                                >
+                                  <File className="w-4 h-4 mr-1 shrink-0" />
+                                  <OverflowTooltip className="w-[180px]">
+                                    {file.originalName}
+                                  </OverflowTooltip>
+                                </SidebarMenuButton>
+                              </ContextMenu>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </div>
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
@@ -182,12 +222,17 @@ type FolderTreeProps = {
 
 function FolderTree({ folder }: FolderTreeProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const foldersByParentId = useSelector(
-    (state: RootState) => state.fileManager.foldersByParentId,
-  );
-  const filesByFolderId = useSelector(
-    (state: RootState) => state.fileManager.filesByFolderId,
-  );
+
+  const {
+    foldersByParentId,
+    filesByFolderId,
+    currentPath,
+    selectedIds,
+    lastSelectedId,
+    searchQuery,
+    viewingMode,
+  } = useSelector((state: RootState) => state.fileManager);
+
   const loaded = useSelector((state: RootState) =>
     state.fileManager.loadedFolders.includes(folder._id),
   );
@@ -195,22 +240,30 @@ function FolderTree({ folder }: FolderTreeProps) {
   const childrenFolder = foldersByParentId[folder._id] || [];
   const childrenFiles = filesByFolderId[folder._id] || [];
 
-  const currentPath = useSelector(
-    (state: RootState) => state.fileManager.currentPath,
-  );
-  const selectedIds = useSelector(
-    (state: RootState) => state.fileManager.selectedIds,
-  );
-  const lastSelectedId = useSelector(
-    (state: RootState) => state.fileManager.lastSelectedId,
-  );
   const isActive = currentPath[currentPath.length - 1] === folder._id;
   const isSelected = selectedIds.includes(folder._id);
 
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: 'ITEM',
-    drop: () => {
-      dispatch(moveItems(folder._id));
+    // drop: () => {
+    //   dispatch(moveItems(folder._id));
+    // },
+    drop: async () => {
+      await dispatch(moveItems(folder._id));
+      if (searchQuery) {
+        const res = await api.get('/search', {
+          params: {
+            query: searchQuery,
+            isDeleted: viewingMode === 'bin' ? 'true' : 'false',
+          },
+        });
+        dispatch(
+          setSearchContents({
+            folders: res.data.folders,
+            files: res.data.files,
+          }),
+        );
+      }
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
@@ -246,7 +299,9 @@ function FolderTree({ folder }: FolderTreeProps) {
       dispatch(setSelectedIds([folder._id])); // Можно сделать selectRange позже
     } else {
       // Обычный клик: и путь, и выделение
-      dispatch(setCurrentPath([...folder.path, folder._id]));
+      dispatch(
+        setCurrentPath(Array.from(new Set([...folder.path, folder._id]))),
+      );
       dispatch(setSelectedIds([folder._id]));
       dispatch(setLastSelectedId(folder._id));
       dispatch(setViewingMode('normal'));

@@ -15,12 +15,18 @@ import {
 } from '@/store/fileManagerSlice';
 import { useState, useEffect } from 'react';
 import api from '@/utils/axios';
+import { RootState } from '@/store';
+import { refreshSearchResults } from '@/utils/reloadSearchResults';
 
 export function RenameModal() {
   const dispatch = useDispatch();
   const item = useSelector(selectRenameItem);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const { searchQuery, viewingMode } = useSelector(
+    (state: RootState) => state.fileManager,
+  );
 
   useEffect(() => {
     if (item) setNewName(item.originalName);
@@ -37,6 +43,10 @@ export function RenameModal() {
       } else if (item.type === 'folder') {
         await api.patch(`/folders/${item.id}`, { name: newName });
         dispatch(updateFolderName({ id: item.id, newName }));
+      }
+
+      if (searchQuery) {
+        await refreshSearchResults(dispatch, searchQuery, viewingMode);
       }
 
       dispatch(closeRenameModal());

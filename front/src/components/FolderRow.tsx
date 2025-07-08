@@ -1,4 +1,4 @@
-import { Folder, Share2, MoreVertical } from 'lucide-react';
+import { Folder, Share2, MoreVertical, Files } from 'lucide-react';
 import { OverflowTooltip } from '@/components/OverflowTooltip';
 import { ContextMenu } from '@/components/ContextMenu';
 import type { FolderType } from '@/store/fileManagerSlice';
@@ -12,6 +12,8 @@ import {
   setIsDragging,
   setDragItems,
   setLastSelectedId,
+  setSearchQuery,
+  setSearchContents,
 } from '@/store/fileManagerSlice';
 import { useDrag, useDrop } from 'react-dnd';
 import { cn } from '@/lib/utils';
@@ -20,6 +22,7 @@ import { selectRange } from '@/store/fileManagerSlice';
 
 import { setFolderContents } from '@/store/fileManagerSlice';
 import api from '@/utils/axios';
+import { store } from '@/store';
 
 type Props = {
   item: FolderType;
@@ -30,15 +33,9 @@ export function FolderRow({ item }: Props) {
   const rowRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch<AppDispatch>();
 
-  const selectedIds = useSelector(
-    (state: RootState) => state.fileManager.selectedIds,
-  );
-  const lastSelectedId = useSelector(
-    (state: RootState) => state.fileManager.lastSelectedId,
-  );
-  const currentPath = useSelector(
-    (state: RootState) => state.fileManager.currentPath,
-  );
+  const { selectedIds, lastSelectedId, searchQuery, viewingMode, currentPath } =
+    useSelector((state: RootState) => state.fileManager);
+
   const isSelected = selectedIds.includes(item._id);
 
   const handleClick = (e: MouseEvent) => {
@@ -59,6 +56,8 @@ export function FolderRow({ item }: Props) {
   };
 
   const handleDoubleClick = async () => {
+    dispatch(setSearchQuery(''));
+    dispatch(setSearchContents({ folders: [], files: [] }));
     dispatch(setSelectedIds([]));
     dispatch(setCurrentPath(Array.from(new Set([...item.path, item._id]))));
 
@@ -79,6 +78,9 @@ export function FolderRow({ item }: Props) {
     e.preventDefault();
     e.stopPropagation();
 
+    dispatch(setSelectedIds([item._id]));
+    dispatch(setLastSelectedId(item._id));
+
     const syntheticEvent = new MouseEvent('contextmenu', {
       bubbles: true,
       cancelable: true,
@@ -89,13 +91,36 @@ export function FolderRow({ item }: Props) {
     rowRef.current?.dispatchEvent(syntheticEvent);
   };
 
+  const formattedPath = (() => {
+    if (!item.key) return '/';
+    const parts = item.key.split('/');
+    if (parts.length <= 2) return '/'; // например, ["id", "FolderName"]
+    const sliced = parts.slice(1, -1);
+    return '/' + sliced.join('/');
+  })();
+
   const [, drag] = useDrag({
     type: 'ITEM',
     item: () => {
       dispatch(setIsDragging(true));
+
+      const state = store.getState().fileManager;
+
+      const allFolders = Object.values(state.foldersByParentId).flat();
+      const allFiles = Object.values(state.filesByFolderId).flat();
+
       const payload = isSelected
-        ? selectedIds.map((id) => ({ id, type: 'folder' as const }))
+        ? state.selectedIds.map((id) => {
+            if (allFiles.some((f) => f._id === id)) {
+              return { id, type: 'file' as const };
+            }
+            if (allFolders.some((f) => f._id === id)) {
+              return { id, type: 'folder' as const };
+            }
+            throw new Error(`Unknown id ${id}`);
+          })
         : [{ id: item._id, type: 'folder' as const }];
+
       dispatch(setDragItems(payload));
       return { id: item._id };
     },
@@ -107,8 +132,22 @@ export function FolderRow({ item }: Props) {
 
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: 'ITEM',
-    drop: () => {
-      dispatch(moveItems(item._id));
+    drop: async () => {
+      await dispatch(moveItems(item._id));
+      if (searchQuery) {
+        const res = await api.get('/search', {
+          params: {
+            query: searchQuery,
+            isDeleted: viewingMode === 'bin' ? 'true' : 'false',
+          },
+        });
+        dispatch(
+          setSearchContents({
+            folders: res.data.folders,
+            files: res.data.files,
+          }),
+        );
+      }
     },
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true }),
@@ -135,9 +174,12 @@ export function FolderRow({ item }: Props) {
         <div className="flex items-center gap-2 overflow-hidden">
           <Folder className="w-4 h-4 shrink-0 text-muted-foreground" />
 
-          <OverflowTooltip className="w-[180px] sm:w-[220px] md:w-[300px] lg:w-[400px]">
-            {item.name}
-          </OverflowTooltip>
+          <OverflowTooltip className="w-[200px]">{item.name}</OverflowTooltip>
+          {formattedPath && searchQuery && (
+            <span className="text-xs text-muted-foreground ml-2">
+              {formattedPath}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
