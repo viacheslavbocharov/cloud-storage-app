@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Patch, Query, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Patch,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FetchProxyService } from 'src/common/proxy/fetch-proxy.service';
 
@@ -11,7 +20,6 @@ export class AuthController {
 
   @Post('pre-register') //+
   async preRegister(@Body() body: any, @Req() req) {
-    console.log('💬 GATEWAY BODY:', body);
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/pre-register`;
     return this.proxy.forward('POST', url, body, req.headers);
   }
@@ -23,15 +31,16 @@ export class AuthController {
   }
 
   @Post('login') //+
-  async login(@Body() body: any, @Req() req) {
+  async login(@Body() body: any, @Req() req, @Res() res) {
     const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/login`;
-    return this.proxy.forward('POST', url, body, req.headers);
-  }
-
-  @Get('protected') //+
-  async getProtected(@Req() req) {
-    const url = `${this.configService.get('AUTH_SERVICE_URL')}/auth/protected`;
-    return this.proxy.forward('GET', url, null, req.headers);
+    const result = await this.proxy.forward(
+      'POST',
+      url,
+      body,
+      req.headers,
+      res,
+    );
+    return res.send(result);
   }
 
   @Post('refresh') //+

@@ -29,7 +29,6 @@ export class FileController {
     private configService: ConfigService,
   ) {}
 
-
   @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileUploadManyInterceptor)
@@ -83,9 +82,34 @@ export class FileController {
     return this.fileService.shareFile(id, ownerId);
   }
 
+  @UseGuards(AuthGuard)
+  @Patch(':id/unshare')
+  async unshareFile(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.fileService.unshareFile(id, ownerId);
+  }
+
+  // @Get('shared/:token')
+  // async downloadSharedFile(@Param('token') token: string, @Res() res) {
+  //   const file = await this.fileService.findBySharedToken(token);
+
+  //   const uploadRoot =
+  //     this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
+  //   const fullPath = path.join(uploadRoot, file.key);
+
+  //   if (!fs.existsSync(fullPath)) {
+  //     throw new NotFoundException('File not found');
+  //   }
+
+  //   return res.download(fullPath, file.originalName);
+  // }
   @Get('shared/:token')
   async downloadSharedFile(@Param('token') token: string, @Res() res) {
     const file = await this.fileService.findBySharedToken(token);
+
+    if (file.isDeleted) {
+      throw new NotFoundException('File has been deleted');
+    }
 
     const uploadRoot =
       this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
@@ -116,10 +140,10 @@ export class FileController {
     return this.fileService.softDeleteFile(id, ownerId);
   }
 
-  @UseGuards(AuthGuard)
-  @Post(':id/restore')
-  async restoreFile(@Param('id') id: string, @Req() req) {
-    const ownerId = req.user?.sub;
-    return this.fileService.restoreFile(id, ownerId);
-  }
+  // @UseGuards(AuthGuard)
+  // @Post(':id/restore')
+  // async restoreFile(@Param('id') id: string, @Req() req) {
+  //   const ownerId = req.user?.sub;
+  //   return this.fileService.restoreFile(id, ownerId);
+  // }
 }

@@ -5,6 +5,7 @@ import {
   Get,
   UseGuards,
   Req,
+  Res,
   Patch,
   Query,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PreRegisterDto } from './dto/pre-register.dto';
+import { Response } from 'express';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -26,36 +28,44 @@ export class AuthController {
   }
 
   @Get('verify-registration')
-  async verifyRegistration(@Query('token') token: string) {
-    return this.authService.verifyRegistration(token);
+  async verifyRegistration(
+    @Query('token') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.verifyRegistration(token, res);
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('protected')
-  getProtected(@Req() req) {
-    return { message: 'You have access!', user: req.user };
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.login(loginDto, res);
   }
 
   @Post('refresh')
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refresh(refreshTokenDto);
+  async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies?.refreshToken;
+    return this.authService.refresh(refreshToken, res);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
-  async logout(@Req() req) {
+  async logout(@Req() req, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.logout(req.user.userId);
+
+    // 🍪 Удаляем refreshToken из cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      // path: '/api/auth/refresh',
+      path: '/',
+    });
+
     console.log('📤 Logout response:', result);
     return result;
   }
-  // async logout(@Req() req) {
-  //   return this.authService.logout(req.user.userId);
-  // }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('change-password')

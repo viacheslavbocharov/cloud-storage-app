@@ -5,6 +5,7 @@ import { UsersModule } from './modules/users/users.module';
 import { FilesModule } from './modules/files/files.module';
 import { FetchProxyModule } from './common/proxy/fetch-proxy.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -13,5 +14,6 @@ import { FetchProxyModule } from './common/proxy/fetch-proxy.module';
     FilesModule,
     FetchProxyModule,
   ],
+  controllers: [],
 })
 export class AppModule {}

@@ -50,6 +50,13 @@ export class FolderController {
   }
 
   @UseGuards(AuthGuard)
+  @Patch(':id/unshare')
+  async unshareFolder(@Param('id') id: string, @Req() req) {
+    const ownerId = req.user?.sub;
+    return this.folderService.unshareFolder(id, ownerId);
+  }
+
+  @UseGuards(AuthGuard)
   @Post('upload-folder')
   async uploadFolder(@Req() req, @Res() res) {
     rawUploadMiddleware(req, res, async () => {
@@ -100,12 +107,12 @@ export class FolderController {
     return this.folderService.softDeleteFolder(id, ownerId);
   }
 
-  @UseGuards(AuthGuard)
-  @Post(':id/restore')
-  async restoreFolder(@Param('id') id: string, @Req() req) {
-    const ownerId = req.user?.sub;
-    return this.folderService.restoreFolder(id, ownerId);
-  }
+  // @UseGuards(AuthGuard)
+  // @Post(':id/restore')
+  // async restoreFolder(@Param('id') id: string, @Req() req) {
+  //   const ownerId = req.user?.sub;
+  //   return this.folderService.restoreFolder(id, ownerId);
+  // }
 
   @UseGuards(AuthGuard)
   @Post('move')

@@ -23,8 +23,8 @@ export class Folder {
   @Prop({ default: 'private', enum: ['private', 'public', 'link'] })
   access: 'private' | 'public' | 'link';
 
-  @Prop()
-  sharedToken?: string;
+  @Prop({ default: null })
+  sharedToken: string | null;
 
   @Prop({ default: false })
   isDeleted: boolean;

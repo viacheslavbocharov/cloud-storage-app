@@ -1,5 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import fetch from 'node-fetch';
+import * as fetch from 'node-fetch';
+import { Response } from 'express';
 
 @Injectable()
 export class FetchProxyService {
@@ -8,6 +9,7 @@ export class FetchProxyService {
     url: string,
     data?: any,
     headers: Record<string, string> = {},
+    res?: Response, // <-- добавляем res
   ): Promise<T> {
     const fetchOptions: any = {
       method,
@@ -15,6 +17,7 @@ export class FetchProxyService {
         'Content-Type': 'application/json',
         ...headers,
       },
+      credentials: 'include', // важно для кук
     };
 
     if (['POST', 'PATCH'].includes(method) && data) {
@@ -22,17 +25,21 @@ export class FetchProxyService {
     }
 
     const response = await fetch(url, fetchOptions);
+    const setCookie = response.headers.raw()['set-cookie'];
+
+    // Прокидываем куки в ответ клиенту
+    if (res && setCookie) {
+      setCookie.forEach((cookie) => res.setHeader('Set-Cookie', cookie));
+    }
+
     const text = await response.text();
 
     if (!response.ok) {
       let parsed: any;
-
       try {
-        // 1. Пробуем обычный парсинг
         parsed = JSON.parse(text);
       } catch {
         try {
-          // 2. Пробуем двойной парсинг (строка содержащая JSON)
           parsed = JSON.parse(JSON.parse(text));
         } catch {
           parsed = {

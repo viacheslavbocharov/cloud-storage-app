@@ -41,71 +41,17 @@ export class FileService {
     return pathParts.join('/');
   }
 
-  // async saveFileMetadata(
-  //   file: Express.Multer.File,
-  //   ownerId: string,
-  //   folderId: string | null = null,
-  // ) {
-  //   const folderPath = await this.buildFolderPath(folderId);
-  //   const uploadRoot =
-  //     this.configService.get<string>('UPLOAD_FOLDER') || './uploads';
-
-  //   const filename = file.filename; // UUID.ext, имя, заданное в FileInterceptor
-  //   const key = folderPath
-  //     ? `${ownerId}/${folderPath}/${filename}`
-  //     : `${ownerId}/${filename}`;
-
-  //   const fullPath = path.join(uploadRoot, key);
-
-  //   console.log('[📂 FILE DEBUG]', {
-  //     folderPath,
-  //     key,
-  //     fullPath,
-  //   });
-
-  //   const sourcePath = file.path; // ← фактический путь к файлу в temp
-
-  //   // Создаём папки
-  //   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-
-  //   try {
-  //     // Копируем файл из temp → в нужную папку
-  //     fs.copyFileSync(sourcePath, fullPath);
-
-  //     // Удаляем оригинал из temp
-  //     fs.unlinkSync(sourcePath);
-  //   } catch (error) {
-  //     console.error('File move error:', error);
-  //     throw new InternalServerErrorException('Failed to move uploaded file');
-  //   }
-
-  //   // Сохраняем метаданные в MongoDB
-  //   const newFile = new this.fileModel({
-  //     filename,
-  //     originalName: file.originalname,
-  //     mimeType: file.mimetype,
-  //     size: file.size,
-  //     ownerId,
-  //     folderId,
-  //     key,
-  //     access: 'private',
-  //   });
-
-  //   return newFile.save();
-  // }
-
   async saveFileMetadata(
     file: Express.Multer.File,
     ownerId: string,
     folderId: string | null = null,
   ) {
-    const folderPath = await this.buildFolderPath(folderId); // для key
+    const folderPath = await this.buildFolderPath(folderId);
     const pathIds: string[] = [];
 
-    // строим path (цепочку ID родительских папок)
     if (folderId) {
       pathIds.push(...(await this.getParentPathIds(folderId)));
-      pathIds.push(folderId); // текущая папка — в конец
+      console.log('[👀 parentPathIds]', pathIds, 'folderId:', folderId);
     }
 
     const uploadRoot =
@@ -147,6 +93,7 @@ export class FileService {
       path: pathIds,
       key,
       access: 'private',
+      sharedToken: null,
     });
 
     return newFile.save();
@@ -155,17 +102,16 @@ export class FileService {
   private async getParentPathIds(folderId: string): Promise<string[]> {
     const path: string[] = [];
     let currentId: string | null = folderId;
-  
+
     while (currentId) {
       const folder = await this.folderModel.findById(currentId).lean();
       if (!folder) break;
       path.unshift(folder._id.toString());
       currentId = folder.parentFolderId;
     }
-  
+
     return path;
   }
-  
 
   async findById(id: string, ownerId: string) {
     const file = await this.fileModel.findOne({
@@ -215,6 +161,25 @@ export class FileService {
     };
   }
 
+  async unshareFile(id: string, ownerId: string) {
+    const file = await this.fileModel.findOne({
+      _id: id,
+      ownerId,
+      isDeleted: { $ne: true },
+    });
+
+    if (!file) {
+      throw new NotFoundException('File not found');
+    }
+
+    file.access = 'private';
+    file.sharedToken = null;
+
+    await file.save();
+
+    return { message: 'Link access removed' };
+  }
+
   async updateFile(id: string, ownerId: string, dto: UpdateFileDto) {
     const file = await this.fileModel.findOne({
       _id: id,
@@ -246,46 +211,46 @@ export class FileService {
     return { message: 'File soft-deleted successfully' };
   }
 
-  async restoreFile(id: string, ownerId: string) {
-    const file = await this.fileModel.findOne({
-      _id: id,
-      ownerId,
-      isDeleted: true, // только удалённые
-    });
+  // async restoreFile(id: string, ownerId: string) {
+  //   const file = await this.fileModel.findOne({
+  //     _id: id,
+  //     ownerId,
+  //     isDeleted: true, // только удалённые
+  //   });
 
-    if (!file) throw new NotFoundException('File not found or not deleted');
+  //   if (!file) throw new NotFoundException('File not found or not deleted');
 
-    // восстанавливаем папки вверх по иерархии
-    if (file.folderId) {
-      await this._restoreFolderChain(file.folderId, ownerId);
-    }
+  //   // восстанавливаем папки вверх по иерархии
+  //   if (file.folderId) {
+  //     await this._restoreFolderChain(file.folderId, ownerId);
+  //   }
 
-    file.isDeleted = false;
-    file.deletedAt = undefined;
+  //   file.isDeleted = false;
+  //   file.deletedAt = undefined;
 
-    await file.save();
-    return { message: 'File restored successfully' };
-  }
+  //   await file.save();
+  //   return { message: 'File restored successfully' };
+  // }
 
-  private async _restoreFolderChain(folderId: string, ownerId: string) {
-    const stack: string[] = [];
+  // private async _restoreFolderChain(folderId: string, ownerId: string) {
+  //   const stack: string[] = [];
 
-    let currentId: string | null = folderId;
+  //   let currentId: string | null = folderId;
 
-    // собираем цепочку вверх
-    while (currentId) {
-      const folder = await this.folderModel.findById(currentId).lean();
-      if (!folder) break;
-      stack.unshift(currentId);
-      currentId = folder.parentFolderId ?? null;
-    }
+  //   // собираем цепочку вверх
+  //   while (currentId) {
+  //     const folder = await this.folderModel.findById(currentId).lean();
+  //     if (!folder) break;
+  //     stack.unshift(currentId);
+  //     currentId = folder.parentFolderId ?? null;
+  //   }
 
-    // по очереди восстанавливаем (снизу вверх)
-    for (const id of stack) {
-      await this.folderModel.updateOne(
-        { _id: id, ownerId, isDeleted: true },
-        { isDeleted: false, deletedAt: undefined },
-      );
-    }
-  }
+  //   // по очереди восстанавливаем (снизу вверх)
+  //   for (const id of stack) {
+  //     await this.folderModel.updateOne(
+  //       { _id: id, ownerId, isDeleted: true },
+  //       { isDeleted: false, deletedAt: undefined },
+  //     );
+  //   }
+  // }
 }

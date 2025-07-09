@@ -4,13 +4,13 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import mongoose from 'mongoose';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Проверяем переменные окружения
   const requiredEnvVars = [
     'PORT',
     'MONGO_URI',
@@ -39,6 +39,8 @@ async function bootstrap() {
     logger.error(`❌ Failed to connect to MongoDB: ${error.message}`);
     process.exit(1);
   }
+
+  app.use(cookieParser());
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const port = configService.get<number>('PORT') || 3001;

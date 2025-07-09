@@ -8,6 +8,7 @@ import { FolderModule } from './modules/folder/folder.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CleanerModule } from './modules/cleaner/cleaner.module';
 import { SearchModule } from './modules/search/search.module';
+import { BinModule } from './modules/bin/bin.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SearchModule } from './modules/search/search.module';
     ScheduleModule.forRoot(),
     CleanerModule,
     SearchModule,
+    BinModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -34,7 +34,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3003;
 
   app.enableCors({
-    origin: '*', // или укажи конкретно: ['https://example.com']
+    origin: ['http://localhost:5173', 'http://192.168.1.99:5173'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

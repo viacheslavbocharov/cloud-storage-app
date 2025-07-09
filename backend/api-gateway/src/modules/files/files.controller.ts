@@ -15,6 +15,8 @@ import { FetchProxyService } from 'src/common/proxy/fetch-proxy.service';
 import { Request, Response } from 'express';
 import * as http from 'http';
 
+import { pipeline } from 'stream';
+
 @Controller('files')
 export class FilesController {
   constructor(
@@ -84,6 +86,11 @@ export class FilesController {
     return this.proxy.forward('PATCH', url, null, req.headers);
   }
 
+  @Patch('/:id/unshare')
+  async unshareFile(@Param('id') id: string, @Req() req) {
+    const url = `${this.configService.get('FILE_SERVICE_URL')}/files/${id}/unshare`;
+    return this.proxy.forward('PATCH', url, null, req.headers);
+  }
 
   @Get('/shared/:token') //+
   async downloadSharedFile(
@@ -113,7 +120,7 @@ export class FilesController {
     });
   }
 
-  @Patch('/:id')//+
+  @Patch('/:id') //+
   async updateFile(@Param('id') id: string, @Body() body, @Req() req) {
     const url = `${this.configService.get('FILE_SERVICE_URL')}/files/${id}`;
     return this.proxy.forward('PATCH', url, body, req.headers);
@@ -125,7 +132,7 @@ export class FilesController {
     return this.proxy.forward('DELETE', url, null, req.headers);
   }
 
-  @Post('/:id/restore')//+
+  @Post('/:id/restore') //+
   async restoreFile(@Param('id') id: string, @Req() req) {
     const url = `${this.configService.get('FILE_SERVICE_URL')}/files/${id}/restore`;
     return this.proxy.forward('POST', url, null, req.headers);

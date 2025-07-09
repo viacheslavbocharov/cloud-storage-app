@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const logger = new Logger('API-Gateway');
@@ -12,9 +13,12 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
       bufferLogs: true,
     });
-
+    app.enableCors({
+      origin: ['http://localhost:5173', 'http://192.168.1.99:5173'], // or true or '*'
+      credentials: true,
+    });
+    app.use(cookieParser());
     app.setGlobalPrefix('api');
-    app.enableCors();
 
     app.use(bodyParser.json({ limit: '10mb' }));
 
@@ -29,7 +33,6 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
     const port = Number(configService.get('PORT')) || 3000;
 
-    // ✅ Вывод зарегистрированных маршрутов
     const server = app.getHttpServer();
     const router = server._events.request._router;
     const routes = [];
