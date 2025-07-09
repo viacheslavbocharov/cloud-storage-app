@@ -13,6 +13,7 @@ import api from '@/utils/axios';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { resetFileManager } from '@/store/fileManagerSlice';
+import { UserSettingsDialog } from './UserSettingsDialog';
 
 export function AccountToolbar() {
   const { firstName, lastName, email } = useSelector(
@@ -36,6 +37,7 @@ export function AccountToolbar() {
   };
 
   return (
+    <>
     <TooltipProvider>
       <div className="flex items-center gap-4 justify-between mx-2 px-4 py-2 bg-muted shadow-sm rounded-md">
         {/* Аватар с тултипом */}
@@ -60,12 +62,13 @@ export function AccountToolbar() {
         <ModeToggle />
 
         {/* Настройки */}
-        <button
+        {/* <button
           className="cursor-pointer text-muted-foreground hover:text-primary transition"
-          onClick={() => console.log('⚙️ Настройки')}
+          onClick={handleSettings}
         >
           <Settings className="w-5 h-5" />
-        </button>
+        </button> */}
+        <UserSettingsDialog />
 
         {/* Выход */}
         <button
@@ -76,5 +79,6 @@ export function AccountToolbar() {
         </button>
       </div>
     </TooltipProvider>
+    </>
   );
 }
