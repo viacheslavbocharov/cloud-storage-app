@@ -31,11 +31,15 @@ type RenameItem = {
 };
 
 type FileManagerState = {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   currentPath: string[];
   selectedIds: string[];
   lastSelectedId: string | null;
   searchQuery: string;
-  viewingMode: 'normal' | 'bin' ;
+  viewingMode: 'normal' | 'bin';
   draggingId: string | null;
   isDragging: boolean;
   dragItems: { id: string; type: 'file' | 'folder' }[];
@@ -53,6 +57,10 @@ type FileManagerState = {
 };
 
 const initialState: FileManagerState = {
+  userId: '',
+  email: '',
+  firstName: '',
+  lastName: '',
   currentPath: [],
   selectedIds: [],
   lastSelectedId: null,
@@ -94,6 +102,21 @@ const fileManagerSlice = createSlice({
         state.loadedFolders.push(key);
       }
     },
+    setUserData(
+      state,
+      action: PayloadAction<{
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+      }>,
+    ) {
+      const { id, email, firstName, lastName } = action.payload;
+      state.userId = id;
+      state.email = email;
+      state.firstName = firstName;
+      state.lastName = lastName;
+    },
 
     setCurrentPath(state, action: PayloadAction<string[]>) {
       state.currentPath = Array.from(new Set(action.payload));
@@ -105,7 +128,7 @@ const fileManagerSlice = createSlice({
     setSearchQuery(state, action: PayloadAction<string>) {
       state.searchQuery = action.payload;
     },
-    setViewingMode(state, action: PayloadAction<'normal' | 'bin' >) {
+    setViewingMode(state, action: PayloadAction<'normal' | 'bin'>) {
       state.viewingMode = action.payload;
     },
 
@@ -253,17 +276,19 @@ const fileManagerSlice = createSlice({
 
       state.selectedIds = range;
     },
-      setSearchContents(
+    setSearchContents(
       state,
       action: PayloadAction<{ folders: FolderType[]; files: FileType[] }>,
     ) {
       state.searchFolders = action.payload.folders;
       state.searchFiles = action.payload.files;
     },
+    resetFileManager: () => initialState,
   },
 });
 
 export const {
+  setUserData,
   setFolderContents,
   setCurrentPath,
   setSelectedIds,
@@ -284,6 +309,7 @@ export const {
   selectRangeInBin,
   setBinContents,
   setSearchContents,
+  resetFileManager,
 } = fileManagerSlice.actions;
 
 export const selectRenameItem = (state: RootState) =>

@@ -7,8 +7,34 @@ import {
 } from '@/components/ui/tooltip';
 import { LogOut, Settings } from 'lucide-react';
 import { ModeToggle } from '@/components/ModeToggle';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import api from '@/utils/axios';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { resetFileManager } from '@/store/fileManagerSlice';
 
 export function AccountToolbar() {
+  const { firstName, lastName, email } = useSelector(
+    (state: RootState) => state.fileManager, // ← адаптируй путь, если нужно
+  );
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const initials =
+    (firstName?.[0] ?? '').toUpperCase() + (lastName?.[0] ?? '').toUpperCase();
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+      localStorage.removeItem('accessToken');
+      dispatch(resetFileManager());
+      navigate('/');
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="flex items-center gap-4 justify-between mx-2 px-4 py-2 bg-muted shadow-sm rounded-md">
@@ -16,7 +42,7 @@ export function AccountToolbar() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Avatar className="cursor-pointer">
-              <AvatarFallback>VB</AvatarFallback>
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </TooltipTrigger>
           <TooltipContent
@@ -25,10 +51,8 @@ export function AccountToolbar() {
             sideOffset={8}
             className="bg-zinc-800 text-white text-sm p-3 rounded-md"
           >
-            <div className="font-bold">Viacheslav Bocharov</div>
-            <div className="text-muted-foreground">
-              viacheslavbocharov@gmail.com
-            </div>
+            <div className="font-bold">{`${firstName} ${lastName}`}</div>
+            <div className="text-muted-foreground">{email}</div>
           </TooltipContent>
         </Tooltip>
 
@@ -37,7 +61,7 @@ export function AccountToolbar() {
 
         {/* Настройки */}
         <button
-          className="text-muted-foreground hover:text-primary transition"
+          className="cursor-pointer text-muted-foreground hover:text-primary transition"
           onClick={() => console.log('⚙️ Настройки')}
         >
           <Settings className="w-5 h-5" />
@@ -45,8 +69,8 @@ export function AccountToolbar() {
 
         {/* Выход */}
         <button
-          className="text-muted-foreground hover:text-primary transition"
-          onClick={() => console.log('🚪 Выход')}
+          className="cursor-pointer text-muted-foreground hover:text-primary transition"
+          onClick={handleLogout}
         >
           <LogOut className="w-5 h-5" />
         </button>

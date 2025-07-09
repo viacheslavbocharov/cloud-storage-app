@@ -17,7 +17,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   openRenameModal,
   setLastSelectedId,
-  setSearchContents,
   setSelectedIds,
 } from '@/store/fileManagerSlice';
 

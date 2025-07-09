@@ -5,14 +5,20 @@ import api from '@/utils/axios';
 import { setBinContents } from '@/store/fileManagerSlice';
 import { FolderRowBin } from './FolderRowBin';
 import { FileRowBin } from './FileRowBin';
+import type { FileType, FolderType } from '@/store/fileManagerSlice';
 
-export function BinView() {
+interface ItemListProps {
+  folders: FolderType[];
+  files: FileType[];
+}
+
+export function BinItemList({ folders, files }: ItemListProps) {
   const dispatch = useDispatch<AppDispatch>();
 
-  const folders = useSelector(
-    (state: RootState) => state.fileManager.binFolders,
-  );
-  const files = useSelector((state: RootState) => state.fileManager.binFiles);
+  // const {binFolders, binFiles} = useSelector(
+  //   (state: RootState) => state.fileManager
+  // );
+
   const currentPath = useSelector(
     (state: RootState) => state.fileManager.currentPath,
   );

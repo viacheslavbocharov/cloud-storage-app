@@ -14,7 +14,7 @@ import {
 
 import { ItemList } from '@/components/ItemList';
 import { FolderBreadcrumbs } from '@/components/FolderBreadcrumbs';
-import { BinView } from '@/components/BinView';
+import { BinItemList } from '@/components/BinItemList';
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -33,6 +33,8 @@ export default function DashboardPage() {
     searchQuery,
     searchFolders,
     searchFiles,
+    binFolders,
+    binFiles,
   } = useSelector((state: RootState) => state.fileManager);
 
   const currentFolderId =
@@ -99,7 +101,12 @@ export default function DashboardPage() {
             <ItemList folders={searchFolders} files={searchFiles} />
           )}
 
-          {viewingMode === 'bin' && <BinView />}
+          {viewingMode === 'bin' && !searchQuery && (
+            <BinItemList folders={binFolders} files={binFiles} />
+          )}
+          {viewingMode === 'bin' && searchQuery && (
+            <BinItemList folders={searchFolders} files={searchFiles} />
+          )}
 
           <CustomDragLayer />
         </SidebarInset>

@@ -43,25 +43,11 @@ export class AuthController {
     return this.authService.login(loginDto, res);
   }
 
-  // @UseGuards(AuthGuard('jwt'))
-  // @Get('protected')
-  // getProtected(@Req() req) {
-  //   return { message: 'You have access!', user: req.user };
-  // }
-
   @Post('refresh')
   async refresh(@Req() req, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken;
     return this.authService.refresh(refreshToken, res);
   }
-
-  // @UseGuards(AuthGuard('jwt'))
-  // @Post('logout')
-  // async logout(@Req() req) {
-  //   const result = await this.authService.logout(req.user.userId);
-  //   console.log('📤 Logout response:', result);
-  //   return result;
-  // }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')

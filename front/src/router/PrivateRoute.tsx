@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { authGetMe } from '../utils/auth';
 import { Loader2 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
 
 const PrivateRoute = () => {
   const [isValid, setIsValid] = useState<boolean | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         console.log('[PrivateRoute] 🔐 Check authoterization...');
-        const user = await authGetMe();
+        const user = await authGetMe(dispatch);
         console.log('[PrivateRoute] ✅ Authorization succsessful:', user);
         setIsValid(true);
       } catch (err) {
@@ -21,7 +23,7 @@ const PrivateRoute = () => {
     };
 
     checkAuth();
-  }, []);
+  }, [dispatch]);
 
   if (isValid === null) {
     return (
