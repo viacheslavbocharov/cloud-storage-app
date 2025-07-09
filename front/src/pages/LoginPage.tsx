@@ -74,7 +74,7 @@ const LoginPage = () => {
                     <div className="flex justify-between items-center">
                       <Label htmlFor="password">Password</Label>
                       <a
-                        href="#"
+                        href="/forgot-password"
                         className="text-sm text-muted-foreground hover:underline"
                       >
                         Forgot password?

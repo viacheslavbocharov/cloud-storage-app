@@ -7,6 +7,8 @@ import VerifyRegistration from '../pages/VerifyRegistrationPage';
 import DashboardPage from '../pages/DashboardPage';
 import PrivateRoute from './PrivateRoute';
 import RegistrationSuccess from '../pages/RegistrationSuccessPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -14,7 +16,9 @@ const router = createBrowserRouter([
   { path: '/registration', element: <RegisterPage /> },
   { path: '/registration/success', element: <RegistrationSuccess /> },
   { path: '/verify-registration', element: <VerifyRegistration /> },
-
+  { path: '/forgot-password', element: <ForgotPasswordPage/> },
+  { path: '/reset-password', element: <ResetPasswordPage/> },
+  
   // Pivate routes
   {
     element: <PrivateRoute />,

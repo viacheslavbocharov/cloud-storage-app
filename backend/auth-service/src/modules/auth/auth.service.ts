@@ -296,11 +296,6 @@ export class AuthService {
   }
   
 
-  // async logout(userId: string): Promise<{ message: string }> {
-  //   await this.userModel.findByIdAndUpdate(userId, { refreshToken: null });
-  //   return { message: 'Logged out successfully' };
-  // }
-
   async logout(userId: string): Promise<{ message: string }> {
     await this.userModel.findByIdAndUpdate(userId, { refreshToken: null });
     return { message: 'Logged out successfully' };
